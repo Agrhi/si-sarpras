@@ -202,9 +202,29 @@ export function AppSidebarHeader({ breadcrumbs = [], onMobileMenuClick }: AppSid
                                             className="px-4 py-3 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer flex gap-3 transition-colors border-b last:border-0"
                                             style={{ borderColor }}
                                             onClick={() => {
-                                                if (!notification.read_at) {
-                                                    router.post(`/notifications/${notification.id}/mark-read`, {}, { preserveScroll: true });
+                                                const url = notification.data?.url;
+
+                                                if (notification.read_at) {
+                                                    if (url) {
+                                                        router.visit(url);
+                                                    }
+
+                                                    return;
                                                 }
+
+                                                router.post(
+                                                    `/notifications/${notification.id}/mark-read`,
+                                                    {},
+                                                    {
+                                                        preserveScroll: true,
+                                                        preserveState: true,
+                                                        onSuccess: () => {
+                                                            if (url) {
+                                                                router.visit(url);
+                                                            }
+                                                        },
+                                                    },
+                                                );
                                             }}
                                         >
                                             <div className="flex-1 min-w-0">
