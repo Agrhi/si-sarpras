@@ -39,6 +39,7 @@ class RoleAndPermissionSeeder extends Seeder
             'maintenance-report.process', 'maintenance-report.cancel',
             'maintenance-schedule.view', 'maintenance-schedule.create', 'maintenance-schedule.edit',
             'maintenance-schedule.delete', 'maintenance-schedule.execute',
+            'audit-log.view',
         ];
 
         foreach ($permissions as $permission) {
@@ -63,7 +64,13 @@ class RoleAndPermissionSeeder extends Seeder
             'maintenance-report.process', 'maintenance-report.cancel',
             'maintenance-schedule.view', 'maintenance-schedule.create', 'maintenance-schedule.edit',
             'maintenance-schedule.delete', 'maintenance-schedule.execute',
+            'audit-log.view',
         ]);
+
+        $auditorRole = Role::firstOrCreate(['name' => 'auditor']);
+        $auditorRole->givePermissionTo(
+            collect($permissions)->filter(fn (string $name) => str_ends_with($name, '.view'))->all(),
+        );
 
         $approverRole = Role::firstOrCreate(['name' => 'pimpinan']);
         $approverRole->givePermissionTo([

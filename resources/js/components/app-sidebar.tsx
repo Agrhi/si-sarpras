@@ -15,6 +15,7 @@ import {
     DoorOpen,
     LayoutGrid,
     MapPin,
+    ScrollText,
     ShieldCheck,
     Tags,
     UserCheck,
@@ -28,6 +29,7 @@ import { index as roleIndex } from '@/actions/App/Http/Controllers/Admin/RoleCon
 import { index as userIndex } from '@/actions/App/Http/Controllers/Admin/UserController';
 import { edit as approvalFlowEdit } from '@/actions/App/Http/Controllers/Sarpras/ApprovalFlowController';
 import { index as assetIndex } from '@/actions/App/Http/Controllers/Sarpras/AssetController';
+import { index as auditLogIndex } from '@/actions/App/Http/Controllers/Sarpras/AuditLogController';
 import { index as categoryIndex } from '@/actions/App/Http/Controllers/Sarpras/CategoryController';
 import { index as loanIndex } from '@/actions/App/Http/Controllers/Sarpras/LoanRequestController';
 import { index as locationIndex } from '@/actions/App/Http/Controllers/Sarpras/LocationController';
@@ -69,6 +71,7 @@ export function AppSidebar({ collapsed, onCollapse, isMobile }: AppSidebarProps)
     const canViewMaintenanceReports = (user?.permissions ?? []).includes('maintenance-report.view');
     const canViewMaintenanceSchedules = (user?.permissions ?? []).includes('maintenance-schedule.view');
     const canEditApprovalFlow = (user?.permissions ?? []).includes('approval-flow.edit');
+    const canViewAuditLogs = (user?.permissions ?? []).includes('audit-log.view');
 
     const getActiveKey = () => {
         if (isCurrentUrl(dashboardUrl)) {
@@ -107,6 +110,10 @@ return 'rooms';
 return 'approval-flow';
 }
 
+        if (canViewAuditLogs && isCurrentUrl(auditLogIndex().url)) {
+return 'audit-logs';
+}
+
         if (isAdmin) {
             if (isCurrentUrl(userIndex().url)) {
 return 'users';
@@ -132,7 +139,7 @@ return 'permissions';
         },
     ];
 
-    const sarprasItems: MenuProps['items'] = canViewAssets || canViewCategories || canViewLocations || canViewLoans || canViewRooms || canViewMaintenanceReports || canViewMaintenanceSchedules || canEditApprovalFlow
+    const sarprasItems: MenuProps['items'] = canViewAssets || canViewCategories || canViewLocations || canViewLoans || canViewRooms || canViewMaintenanceReports || canViewMaintenanceSchedules || canEditApprovalFlow || canViewAuditLogs
         ? [
               {
                   key: 'sarpras-group',
@@ -178,6 +185,11 @@ return 'permissions';
                           key: 'approval-flow',
                           icon: <Waypoints size={16} />,
                           label: <Link href={approvalFlowEdit().url} prefetch>Alur Persetujuan</Link>,
+                      },
+                      canViewAuditLogs && {
+                          key: 'audit-logs',
+                          icon: <ScrollText size={16} />,
+                          label: <Link href={auditLogIndex().url} prefetch>Audit Log</Link>,
                       },
                   ].filter(Boolean) as MenuProps['items'],
               },

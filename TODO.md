@@ -1,28 +1,28 @@
 # TODO — SI-Sarpras
 
 >Status implementasi terhadap [docs/Rancangan_Sistem_Informasi_Sarpras.md](docs/Rancangan_Sistem_Informasi_Sarpras.md) (v0.1, Bagian 14: 5 tahap).
->Pembaruan terakhir: 2026-11-10 — setelah selesainya Tahap 3a (peminjaman) dan audit kesesuaian modul.
+>Pembaruan terakhir: 2026-11-14 — setelah selesainya Tahap 3b (perawatan, pengingat, notifikasi).
 
 ## Progress singkat
 
 - Tahap 1 Fondasi ✅ — users/roles/permissions, teams, notifikasi, layout.
 - Tahap 2 Inventaris aset ✅ — master kategori/lokasi, CRUD aset, kode inventaris, QR label, foto, histori, scan.
-- Tahap 3 Operasional 🔨 — peminjaman selesai; kerusakan/jadwal/pengingat belum.
-- Tahap 4 Tata kelola ❌ belum mulai.
+- Tahap 3 Operasional ✅ — peminjaman, kerusakan, jadwal pemeliharaan, pengingat.
+- Tahap 4 Tata kelola 🔨 — audit log + role auditor selesai; pengadaan/penghapusan belum.
 - Tahap 5 Penyempurnaan ❌ belum mulai.
 - **±6 dari 12 modul berfungsi** (Bagian 2.1 dokumen).
 
-## Tahap 3b — Perawatan & Pengingat (prioritas berikutnya)
+## Tahap 3b — Perawatan & Pengingat ✅ (selesai 2026-11-14)
 
-- [ ] **Laporan kerusakan** (`maintenance_reports`, §6.5): pelapor membuat laporan (aset, urgensi, deskripsi, foto lampiran); status menunggu → dalam proses → selesai/dibatalkan; penugasan petugas teknis; catat tindakan, biaya, suku cadang.
-- [ ] **Jadwal pemelihraan** (`maintenance_schedules`, §6.6): frekuensi harian/mingguan/bulan/semester/tahun; petugas penanggung jawab; realisasi pelaksanaan + tanggal jadwal berikutnya; tampilan jatuh tempo & terlambat.
-- [ ] **Role `petugas-teknis`** (§3): mengambil tugas perawatan/perbaikan, memperbarui progres.
-- [ ] **Scheduler** (`routes/console.php` + `Schedule::`): job harian pengecekan jadwal & tenggat → notifikasi.
-- [ ] **Pengingat tenggat peminjaman** (§6.4): notifikasi sebelum jatuh tempo + keterlambatan (job harian, table notifications).
-- [ ] **Pemicu notifikasi modul sarpras** (§6.10): pengajuan dibuat/disetujui/ditolak/di-serah terima/di-kembalikan → notifikasi ke pihak terkait (pemohon/penyetuju).
-- [ ] **Aturan bisnis #7**: aset dengan laporan rusak ditandai otomatis tidak tersedia/dalam perbaikan.
-- [ ] **Test** modul perawatan + scheduler.
-- [ ] pint, `wayfinder:generate --with-form`, `npm run build`, migrasi + seed DB dev, full test suite.
+- [x] **Laporan kerusakan** (`maintenance_reports`, §6.5): pelapor membuat laporan (aset, urgensi, deskripsi, foto lampiran); status menunggu → dalam proses → selesai/dibatalkan; penugasan petugas teknis; catat tindakan, biaya, suku cadang.
+- [x] **Jadwal pemelihraan** (`maintenance_schedules`, §6.6): frekuensi harian/mingguan/bulan/semester/tahun; petugas penanggung jawab; realisasi pelaksanaan + tanggal jadwal berikutnya; tampilan jatuh tempo & terlambat.
+- [x] **Role `petugas-teknis`** (§3): mengambil tugas perawatan/perbaikan, memperbarui progres.
+- [x] **Scheduler** (`routes/console.php` + `Schedule::`): job harian pengecekan jadwal & tenggat → notifikasi.
+- [x] **Pengingat tenggat peminjaman** (§6.4): notifikasi sebelum jatuh tempo + keterlambatan (job harian, table notifications).
+- [x] **Pemicu notifikasi modul sarpras** (§6.10): pengajuan dibuat/disetujui/ditolak/di-serah terima/di-kembalikan → notifikasi ke pihak terkait (pemohon/penyetuju).
+- [x] **Aturan bisnis #7**: aset dengan laporan rusak ditandai otomatis tidak tersedia/dalam perbaikan.
+- [x] **Test** modul perawatan + scheduler.
+- [x] pint, `wayfinder:generate --with-form`, `npm run build`, migrasi + seed DB dev, full test suite.
 
 ## Tahap 3c — Laporan Modul (jika diminta)
 
@@ -33,8 +33,8 @@
 
 - [ ] **Pengadaan** (`procurements` + `procurement_items`, §6.7): usulan multi-item + alasan + estimasi; verifikasi/persetujuan (alur berjenjang `approval_flows` module `procurement`); penerimaan → barang menjadi aset inventaris.
 - [ ] **Penghapusan** (`disposals`, §6.8): usulan dengan alasan + bukti; persetujuan; metode + tanggal realisasi + dokumen; aset berstatus `dihapus` tanpa menghilangkan histori.
-- [ ] **Audit log global** (`audit_logs`, §6.10): aktor, waktu, aksi, jenis objek, ID objek, ringkasan; read-only bagi pengguna biasa.
-- [ ] **Role `auditor`** (§3): baca semua data + audit log.
+- [x] **Audit log global** (`audit_logs`, §6.10): aktor, waktu, aksi, jenis objek, ID objek, ringkasan; read-only bagi pengguna biasa.
+- [x] **Role `auditor`** (§3): baca semua data + audit log.
 - [ ] **Laporan pengadaan/penghapusan** (§12).
 - [ ] Test, pint, wayfinder, build, migrasi, seed.
 

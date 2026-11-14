@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Sarpras\ApprovalFlowController;
 use App\Http\Controllers\Sarpras\AssetController;
+use App\Http\Controllers\Sarpras\AuditLogController;
 use App\Http\Controllers\Sarpras\CategoryController;
 use App\Http\Controllers\Sarpras\LoanRequestController;
 use App\Http\Controllers\Sarpras\LocationController;
@@ -116,6 +117,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('maintenance-schedules/{maintenanceSchedule}', 'destroy')->name('maintenance-schedules.destroy')->middleware('can:maintenance-schedule.delete');
         Route::patch('maintenance-schedules/{maintenanceSchedule}/complete', 'complete')->name('maintenance-schedules.complete')->middleware('can:maintenance-schedule.execute');
     });
+
+    // Sarpras: read-only audit trail
+    Route::get('audit-logs', [AuditLogController::class, 'index'])
+        ->name('audit-logs.index')
+        ->middleware('can:audit-log.view');
 });
 
 Route::middleware(['auth'])->group(function () {
