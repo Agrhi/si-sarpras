@@ -2,9 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Enums\MaintenanceFrequency;
+use App\Enums\MaintenanceStatus;
+use App\Enums\MaintenanceUrgency;
 use App\Models\Asset;
 use App\Models\Category;
 use App\Models\Location;
+use App\Models\MaintenanceReport;
+use App\Models\MaintenanceSchedule;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -77,15 +82,54 @@ class DemoDataSeeder extends Seeder
             );
         }
 
+        $users = [];
+
         foreach ([
             ['admin', 'Admin Sarpras'],
             ['pimpinan', 'Pimpinan'],
             ['pegawai', 'Pegawai Contoh'],
+            ['petugas-teknis', 'Petugas Teknis'],
         ] as [$local, $name]) {
-            User::firstOrCreate(
+            $users[$local] = User::firstOrCreate(
                 ['email' => "{$local}@localhost"],
                 ['name' => $name, 'password' => bcrypt('password'), 'email_verified_at' => now()],
-            )->assignRole($local);
+            );
+
+            $users[$local]->assignRole($local);
+        }
+
+        $speaker = Asset::where('inventory_code', 'INV-00006')->first();
+        $projector = Asset::where('inventory_code', 'INV-00002')->first();
+
+        if ($speaker) {
+            MaintenanceReport::firstOrCreate(
+                [
+                    'asset_id' => $speaker->id,
+                    'description' => 'Speaker mengeluarkan suara pecah saat volume dinaikkan.',
+                ],
+                [
+                    'reported_by' => $users['pegawai']->id,
+                    'assigned_to' => $users['petugas-teknis']->id,
+                    'urgency' => MaintenanceUrgency::High,
+                    'status' => MaintenanceStatus::InProgress,
+                    'started_at' => now(),
+                ],
+            );
+        }
+
+        if ($projector) {
+            MaintenanceSchedule::firstOrCreate(
+                [
+                    'asset_id' => $projector->id,
+                    'title' => 'Pembersihan filter proyektor',
+                ],
+                [
+                    'assigned_to' => $users['petugas-teknis']->id,
+                    'frequency' => MaintenanceFrequency::Monthly,
+                    'next_due_at' => now()->addDays(5)->toDateString(),
+                    'is_active' => true,
+                ],
+            );
         }
     }
 }

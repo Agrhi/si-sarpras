@@ -10,6 +10,7 @@ import { Avatar, Dropdown, Layout, Menu, Tooltip } from 'antd';
 import type { MenuProps } from 'antd';
 import {
     Boxes,
+    CalendarCheck,
     ClipboardList,
     DoorOpen,
     LayoutGrid,
@@ -19,6 +20,7 @@ import {
     UserCheck,
     Users,
     Waypoints,
+    Wrench,
     Zap,
 } from 'lucide-react';
 import { index as permissionIndex } from '@/actions/App/Http/Controllers/Admin/PermissionController';
@@ -29,6 +31,8 @@ import { index as assetIndex } from '@/actions/App/Http/Controllers/Sarpras/Asse
 import { index as categoryIndex } from '@/actions/App/Http/Controllers/Sarpras/CategoryController';
 import { index as loanIndex } from '@/actions/App/Http/Controllers/Sarpras/LoanRequestController';
 import { index as locationIndex } from '@/actions/App/Http/Controllers/Sarpras/LocationController';
+import { index as maintenanceReportIndex } from '@/actions/App/Http/Controllers/Sarpras/MaintenanceReportController';
+import { index as maintenanceScheduleIndex } from '@/actions/App/Http/Controllers/Sarpras/MaintenanceScheduleController';
 import { index as roomIndex } from '@/actions/App/Http/Controllers/Sarpras/RoomController';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useCurrentUrl } from '@/hooks/use-current-url';
@@ -62,6 +66,8 @@ export function AppSidebar({ collapsed, onCollapse, isMobile }: AppSidebarProps)
     const canViewLocations = (user?.permissions ?? []).includes('location.view');
     const canViewLoans = (user?.permissions ?? []).includes('loan.view');
     const canViewRooms = (user?.permissions ?? []).includes('room.view');
+    const canViewMaintenanceReports = (user?.permissions ?? []).includes('maintenance-report.view');
+    const canViewMaintenanceSchedules = (user?.permissions ?? []).includes('maintenance-schedule.view');
     const canEditApprovalFlow = (user?.permissions ?? []).includes('approval-flow.edit');
 
     const getActiveKey = () => {
@@ -83,6 +89,14 @@ return 'locations';
 
         if (isCurrentUrl(loanIndex().url)) {
 return 'loans';
+}
+
+        if (isCurrentUrl(maintenanceReportIndex().url)) {
+return 'maintenance-reports';
+}
+
+        if (isCurrentUrl(maintenanceScheduleIndex().url)) {
+return 'maintenance-schedules';
 }
 
         if (isCurrentUrl(roomIndex().url)) {
@@ -118,7 +132,7 @@ return 'permissions';
         },
     ];
 
-    const sarprasItems: MenuProps['items'] = canViewAssets || canViewCategories || canViewLocations || canViewLoans || canViewRooms || canEditApprovalFlow
+    const sarprasItems: MenuProps['items'] = canViewAssets || canViewCategories || canViewLocations || canViewLoans || canViewRooms || canViewMaintenanceReports || canViewMaintenanceSchedules || canEditApprovalFlow
         ? [
               {
                   key: 'sarpras-group',
@@ -149,6 +163,16 @@ return 'permissions';
                           key: 'loans',
                           icon: <ClipboardList size={16} />,
                           label: <Link href={loanIndex().url} prefetch>Peminjaman</Link>,
+                      },
+                      canViewMaintenanceReports && {
+                          key: 'maintenance-reports',
+                          icon: <Wrench size={16} />,
+                          label: <Link href={maintenanceReportIndex().url} prefetch>Laporan Kerusakan</Link>,
+                      },
+                      canViewMaintenanceSchedules && {
+                          key: 'maintenance-schedules',
+                          icon: <CalendarCheck size={16} />,
+                          label: <Link href={maintenanceScheduleIndex().url} prefetch>Jadwal Pemeliharaan</Link>,
                       },
                       canEditApprovalFlow && {
                           key: 'approval-flow',

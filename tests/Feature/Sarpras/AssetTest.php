@@ -4,6 +4,8 @@ use App\Enums\AssetCondition;
 use App\Models\Asset;
 use App\Models\Category;
 use App\Models\Location;
+use App\Models\MaintenanceReport;
+use App\Models\MaintenanceSchedule;
 use App\Models\User;
 
 test('guests are redirected to login when visiting assets', function () {
@@ -177,4 +179,20 @@ test('scanning an unknown code redirects back with an error toast', function () 
 
 test('guests cannot scan codes', function () {
     $this->get(route('assets.scan', 'INV-123'))->assertRedirect(route('login'));
+});
+
+test('the asset detail page lists its maintenance reports and schedules', function () {
+    $user = sarprasUser(['asset.view']);
+    $asset = Asset::factory()->create();
+    MaintenanceReport::factory()->create(['asset_id' => $asset->id]);
+    MaintenanceSchedule::factory()->create(['asset_id' => $asset->id]);
+
+    $this->actingAs($user)
+        ->get(route('assets.show', $asset))
+        ->assertOk()
+        ->assertInertia(fn ($assert) => $assert
+            ->component('sarpras/assets/show')
+            ->has('maintenance.reports', 1)
+            ->has('maintenance.schedules', 1)
+        );
 });

@@ -8,6 +8,7 @@ import {
     show,
     storeImage,
 } from '@/actions/App/Http/Controllers/Sarpras/AssetController';
+import { show as reportShow } from '@/actions/App/Http/Controllers/Sarpras/MaintenanceReportController';
 import AssetQrLabel from '@/components/asset-qr-label';
 import PageHeader from '@/components/page-header';
 import Panel from '@/components/panel';
@@ -23,6 +24,24 @@ interface AssetHistoryItem {
     user: string;
     changes: Record<string, string>;
     created_at: string;
+}
+
+interface MaintenanceReportItem {
+    id: number;
+    urgency: string;
+    status: string;
+    status_value: string;
+    assignee: string | null;
+    created_at: string;
+    completed_at: string | null;
+}
+
+interface MaintenanceScheduleItem {
+    id: number;
+    title: string;
+    frequency: string;
+    next_due_at: string;
+    due_state: string;
 }
 
 interface Props {
@@ -45,6 +64,10 @@ interface Props {
     };
     images: AssetImage[];
     histories: AssetHistoryItem[];
+    maintenance: {
+        reports: MaintenanceReportItem[];
+        schedules: MaintenanceScheduleItem[];
+    };
 }
 
 const CONDITION_COLORS: Record<string, string> = {
@@ -64,6 +87,27 @@ const ACTION_TITLES: Record<string, string> = {
     created: 'Aset dicatat',
     updated: 'Data diperbarui',
     archived: 'Aset diarsipkan',
+};
+
+const REPORT_STATUS_COLORS: Record<string, string> = {
+    menunggu: 'gold',
+    diproses: 'blue',
+    selesai: 'green',
+    dibatalkan: 'default',
+};
+
+const DUE_STATE_COLORS: Record<string, string> = {
+    terjadwal: 'blue',
+    'jatuh-tempo': 'gold',
+    terlambat: 'red',
+    nonaktif: 'default',
+};
+
+const DUE_STATE_LABELS: Record<string, string> = {
+    terjadwal: 'Terjadwal',
+    'jatuh-tempo': 'Jatuh tempo',
+    terlambat: 'Terlambat',
+    nonaktif: 'Nonaktif',
 };
 
 function historyTimelineItem(history: AssetHistoryItem) {
@@ -88,7 +132,7 @@ function historyTimelineItem(history: AssetHistoryItem) {
     };
 }
 
-export default function AssetShow({ asset, images, histories }: Props) {
+export default function AssetShow({ asset, images, histories, maintenance }: Props) {
     const { auth } = usePage().props;
     const canEdit = (auth.user.permissions as string[]).includes('asset.edit');
 
@@ -263,6 +307,94 @@ export default function AssetShow({ asset, images, histories }: Props) {
                 <p className="mt-4 text-xs text-muted-foreground">
                     Dicatat pada {asset.created_at}
                 </p>
+            </Panel>
+
+            <Panel title="Riwayat perawatan">
+                <div className="space-y-6">
+                    <div>
+                        <h4 className="mb-2 text-sm font-semibold">
+                            Laporan kerusakan
+                        </h4>
+                        {maintenance.reports.length > 0 ? (
+                            <ul className="space-y-2">
+                                {maintenance.reports.map((report) => (
+                                    <li
+                                        key={report.id}
+                                        className="flex flex-wrap items-center gap-2 text-sm"
+                                    >
+                                        <Link
+                                            href={reportShow(report.id).url}
+                                            className="font-medium text-primary"
+                                        >
+                                            Laporan #{report.id}
+                                        </Link>
+                                        <Tag
+                                            color={
+                                                REPORT_STATUS_COLORS[
+                                                    report.status_value
+                                                ] ?? 'default'
+                                            }
+                                        >
+                                            {report.status}
+                                        </Tag>
+                                        <span className="text-muted-foreground">
+                                            {report.urgency} · dilaporkan{' '}
+                                            {report.created_at}
+                                            {report.assignee
+                                                ? ` · petugas ${report.assignee}`
+                                                : ''}
+                                            {report.completed_at
+                                                ? ` · selesai ${report.completed_at}`
+                                                : ''}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                                Belum ada laporan kerusakan.
+                            </p>
+                        )}
+                    </div>
+                    <div>
+                        <h4 className="mb-2 text-sm font-semibold">
+                            Jadwal pemeliharaan
+                        </h4>
+                        {maintenance.schedules.length > 0 ? (
+                            <ul className="space-y-2">
+                                {maintenance.schedules.map((schedule) => (
+                                    <li
+                                        key={schedule.id}
+                                        className="flex flex-wrap items-center gap-2 text-sm"
+                                    >
+                                        <span className="font-medium">
+                                            {schedule.title}
+                                        </span>
+                                        <Tag
+                                            color={
+                                                DUE_STATE_COLORS[
+                                                    schedule.due_state
+                                                ] ?? 'default'
+                                            }
+                                        >
+                                            {DUE_STATE_LABELS[
+                                                schedule.due_state
+                                            ] ?? schedule.due_state}
+                                        </Tag>
+                                        <span className="text-muted-foreground">
+                                            {schedule.frequency} · berikutnya{' '}
+                                            {schedule.next_due_at}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                                Belum ada jadwal pemeliharaan.
+                            </p>
+                        )}
+                    </div>
+                </div>
             </Panel>
 
             <Panel title="Riwayat perubahan">

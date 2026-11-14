@@ -296,3 +296,20 @@ test('loan create page lists available assets and rooms', function () {
         ->has('rooms', 2)
     );
 });
+
+test('handover is blocked while an asset is under repair', function () {
+    $loan = LoanRequest::factory()->create([
+        'status' => LoanStatus::Approved,
+        'approval_steps' => [['role' => 'admin', 'title' => 'Verifikasi Admin']],
+    ]);
+    $asset = Asset::factory()->create(['status' => AssetStatus::DalamPerbaikan]);
+    $loan->items()->create(['asset_id' => $asset->id]);
+
+    $this->actingAs(sarprasUser(['loan.approve']))
+        ->from(route('loans.show', $loan))
+        ->post(route('loans.handover', $loan))
+        ->assertSessionHasErrors('assets');
+
+    expect($loan->fresh()->status)->toBe(LoanStatus::Approved);
+    expect($asset->fresh()->status)->toBe(AssetStatus::DalamPerbaikan);
+});

@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Asset;
 use App\Models\Category;
 use App\Models\Location;
+use App\Models\MaintenanceReport;
+use App\Models\MaintenanceSchedule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -122,6 +124,31 @@ class AssetController extends Controller
             'url' => Storage::disk('public')->url($image->path),
         ]);
 
+        $maintenanceReports = $asset->maintenanceReports()
+            ->with('assignee:id,name')
+            ->latest('id')
+            ->get()
+            ->map(fn (MaintenanceReport $report) => [
+                'id' => $report->id,
+                'urgency' => $report->urgency->label(),
+                'status' => $report->status->label(),
+                'status_value' => $report->status->value,
+                'assignee' => $report->assignee?->name,
+                'created_at' => $report->created_at->format('d/m/Y'),
+                'completed_at' => $report->completed_at?->format('d/m/Y'),
+            ]);
+
+        $maintenanceSchedules = $asset->maintenanceSchedules()
+            ->orderBy('next_due_at')
+            ->get()
+            ->map(fn (MaintenanceSchedule $schedule) => [
+                'id' => $schedule->id,
+                'title' => $schedule->title,
+                'frequency' => $schedule->frequency->label(),
+                'next_due_at' => $schedule->next_due_at->format('d/m/Y'),
+                'due_state' => $schedule->due_state,
+            ]);
+
         return Inertia::render('sarpras/assets/show', [
             'asset' => [
                 'id' => $asset->id,
@@ -142,6 +169,10 @@ class AssetController extends Controller
             ],
             'images' => $images,
             'histories' => $histories,
+            'maintenance' => [
+                'reports' => $maintenanceReports,
+                'schedules' => $maintenanceSchedules,
+            ],
         ]);
     }
 

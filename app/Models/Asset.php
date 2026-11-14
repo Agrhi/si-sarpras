@@ -76,6 +76,26 @@ class Asset extends Model
     }
 
     /**
+     * Get the damage reports filed for this asset.
+     *
+     * @return HasMany<MaintenanceReport, $this>
+     */
+    public function maintenanceReports(): HasMany
+    {
+        return $this->hasMany(MaintenanceReport::class)->latest('id');
+    }
+
+    /**
+     * Get the maintenance schedules defined for this asset.
+     *
+     * @return HasMany<MaintenanceSchedule, $this>
+     */
+    public function maintenanceSchedules(): HasMany
+    {
+        return $this->hasMany(MaintenanceSchedule::class)->orderBy('next_due_at');
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

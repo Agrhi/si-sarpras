@@ -35,6 +35,10 @@ class RoleAndPermissionSeeder extends Seeder
             'loan.handover', 'loan.reject', 'loan.return', 'loan.cancel',
             'notification.delete', 'notification.mark-read', 'notification.mark-all-read',
             'approval-flow.edit', 'approval_flow.edit',
+            'maintenance-report.view', 'maintenance-report.create', 'maintenance-report.assign',
+            'maintenance-report.process', 'maintenance-report.cancel',
+            'maintenance-schedule.view', 'maintenance-schedule.create', 'maintenance-schedule.edit',
+            'maintenance-schedule.delete', 'maintenance-schedule.execute',
         ];
 
         foreach ($permissions as $permission) {
@@ -55,18 +59,31 @@ class RoleAndPermissionSeeder extends Seeder
             'room.view', 'room.create', 'room.edit', 'room.delete',
             'loan.view', 'loan.create', 'loan.approve',
             'approval-flow.edit',
+            'maintenance-report.view', 'maintenance-report.create', 'maintenance-report.assign',
+            'maintenance-report.process', 'maintenance-report.cancel',
+            'maintenance-schedule.view', 'maintenance-schedule.create', 'maintenance-schedule.edit',
+            'maintenance-schedule.delete', 'maintenance-schedule.execute',
         ]);
 
         $approverRole = Role::firstOrCreate(['name' => 'pimpinan']);
         $approverRole->givePermissionTo([
             'category.view', 'location.view', 'asset.view', 'room.view',
             'loan.view', 'loan.approve',
+            'maintenance-report.view', 'maintenance-schedule.view',
         ]);
 
         $staffRole = Role::firstOrCreate(['name' => 'pegawai']);
         $staffRole->givePermissionTo([
             'category.view', 'location.view', 'asset.view', 'room.view',
             'loan.view', 'loan.create',
+            'maintenance-report.view', 'maintenance-report.create', 'maintenance-report.cancel',
+        ]);
+
+        $technicianRole = Role::firstOrCreate(['name' => 'petugas-teknis']);
+        $technicianRole->givePermissionTo([
+            'asset.view', 'room.view',
+            'maintenance-report.view', 'maintenance-report.create', 'maintenance-report.process',
+            'maintenance-schedule.view', 'maintenance-schedule.execute',
         ]);
 
         // Default multi-step approval flow for loan requests

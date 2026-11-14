@@ -12,8 +12,19 @@ use App\Models\Asset;
 use App\Models\LoanApproval;
 use App\Models\LoanRequest;
 use App\Models\Room;
+use App\Models\User;
+use App\Notifications\Sarpras\LoanApproved;
+use App\Notifications\Sarpras\LoanCancelled;
+use App\Notifications\Sarpras\LoanHandedOver;
+use App\Notifications\Sarpras\LoanRejected;
+use App\Notifications\Sarpras\LoanReturned;
+use App\Notifications\Sarpras\LoanStepApproved;
+use App\Notifications\Sarpras\LoanSubmitted;
+use App\Services\MaintenanceService;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -21,6 +32,11 @@ use Inertia\Response;
 
 class LoanRequestController extends Controller
 {
+    public function __construct(
+        private NotificationService $notifications,
+        private MaintenanceService $maintenance,
+    ) {}
+
     /**
      * Display a listing of loan requests.
      */
@@ -188,6 +204,10 @@ class LoanRequestController extends Controller
             return $loan;
         });
 
+        $loan->loadMissing('user');
+
+        $this->notifyApprovers($loan, $steps[0]['role'] ?? null, new LoanSubmitted($loan), $request->user());
+
         return redirect()->route('loans.show', $loan)->with('success', 'Pengajuan peminjaman berhasil dikirim.');
     }
 
@@ -274,6 +294,18 @@ class LoanRequestController extends Controller
     {
         abort_unless($loanRequest->status === LoanStatus::Approved, 409, 'Hanya pengajuan disetujui yang dapat diserahterimakan.');
 
+        $loanRequest->loadMissing('items.asset');
+
+        $unavailable = $loanRequest->items
+            ->map(fn ($item) => $item->asset)
+            ->filter(fn (?Asset $asset) => $asset && $asset->status !== AssetStatus::Aktif);
+
+        if ($unavailable->isNotEmpty()) {
+            return redirect()->route('loans.show', $loanRequest)->withErrors([
+                'assets' => 'Aset berikut sedang tidak tersedia: '.$unavailable->pluck('name')->implode(', ').'.',
+            ]);
+        }
+
         DB::transaction(function () use ($loanRequest) {
             $loanRequest->items->loadMissing('asset')->each(function ($item) {
                 if ($item->asset) {
@@ -286,6 +318,9 @@ class LoanRequestController extends Controller
                 'handed_at' => now(),
             ]);
         });
+
+        $loanRequest->loadMissing('user');
+        $this->notify($loanRequest->user, new LoanHandedOver($loanRequest), $request->user());
 
         return redirect()->route('loans.show', $loanRequest)->with('success', 'Serah terima tercatat. Aset kini berstatus dipinjam.');
     }
@@ -313,6 +348,8 @@ class LoanRequestController extends Controller
                         'status' => AssetStatus::Aktif,
                         'condition' => $conditionIn ?? $item->asset->condition,
                     ]);
+
+                    $this->maintenance->syncAssetStatus($item->asset);
                 }
             });
 
@@ -321,6 +358,9 @@ class LoanRequestController extends Controller
                 'returned_at' => now(),
             ]);
         });
+
+        $loanRequest->loadMissing('user');
+        $this->notify($loanRequest->user, new LoanReturned($loanRequest), $request->user());
 
         return redirect()->route('loans.show', $loanRequest)->with('success', 'Pengembalian tercatat.');
     }
@@ -336,6 +376,14 @@ class LoanRequestController extends Controller
         abort_unless($loanRequest->user_id === $user->id || $user->can('loan.approve'), 403);
 
         $loanRequest->update(['status' => LoanStatus::Cancelled]);
+
+        $loanRequest->loadMissing('user');
+        $this->notifyApprovers(
+            $loanRequest,
+            $loanRequest->currentStepRole(),
+            new LoanCancelled($loanRequest),
+            $user,
+        );
 
         return redirect()->route('loans.show', $loanRequest)->with('success', 'Pengajuan dibatalkan.');
     }
@@ -381,7 +429,54 @@ class LoanRequestController extends Controller
             ? 'Persetujuan langkah ini tercatat.'
             : 'Pengajuan ditolak.';
 
+        $loanRequest->loadMissing('user');
+
+        if ($decision === LoanDecision::Rejected) {
+            $this->notify($loanRequest->user, new LoanRejected($loanRequest), $user);
+        } elseif ($loanRequest->status === LoanStatus::Approved) {
+            $this->notify($loanRequest->user, new LoanApproved($loanRequest), $user);
+        } else {
+            $this->notifyApprovers(
+                $loanRequest,
+                $loanRequest->currentStepRole(),
+                new LoanStepApproved($loanRequest),
+                $user,
+            );
+        }
+
         return redirect()->route('loans.show', $loanRequest)->with('success', $message);
+    }
+
+    /**
+     * Notify every approver of the given role except the actor.
+     */
+    private function notifyApprovers(LoanRequest $loan, ?string $role, Notification $notification, ?User $actor = null): void
+    {
+        if ($role === null) {
+            return;
+        }
+
+        $approvers = User::query()
+            ->whereHas('roles', fn ($query) => $query->where('name', $role))
+            ->get()
+            ->filter(fn (User $user) => $user->can('loan.approve'))
+            ->reject(fn (User $user) => $actor?->is($user));
+
+        if ($approvers->isNotEmpty()) {
+            $this->notifications->sendToMultiple($approvers, $notification);
+        }
+    }
+
+    /**
+     * Send a notification unless the actor is the recipient.
+     */
+    private function notify(?User $recipient, Notification $notification, ?User $actor = null): void
+    {
+        if (! $recipient || $actor?->is($recipient)) {
+            return;
+        }
+
+        $this->notifications->send($recipient, $notification);
     }
 
     /**

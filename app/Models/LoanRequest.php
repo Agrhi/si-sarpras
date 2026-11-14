@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['user_id', 'purpose', 'borrowed_at', 'due_at', 'status', 'approval_steps', 'current_step', 'handed_at', 'returned_at'])]
+#[Fillable(['user_id', 'purpose', 'borrowed_at', 'due_at', 'status', 'approval_steps', 'current_step', 'handed_at', 'returned_at', 'due_reminder_sent_at', 'overdue_reminder_sent_at'])]
 class LoanRequest extends Model
 {
     /** @use HasFactory<LoanRequestFactory> */
@@ -23,6 +23,8 @@ class LoanRequest extends Model
             'due_at' => 'datetime',
             'handed_at' => 'datetime',
             'returned_at' => 'datetime',
+            'due_reminder_sent_at' => 'datetime',
+            'overdue_reminder_sent_at' => 'datetime',
             'status' => LoanStatus::class,
             'approval_steps' => 'array',
             'current_step' => 'integer',

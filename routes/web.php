@@ -10,6 +10,8 @@ use App\Http\Controllers\Sarpras\AssetController;
 use App\Http\Controllers\Sarpras\CategoryController;
 use App\Http\Controllers\Sarpras\LoanRequestController;
 use App\Http\Controllers\Sarpras\LocationController;
+use App\Http\Controllers\Sarpras\MaintenanceReportController;
+use App\Http\Controllers\Sarpras\MaintenanceScheduleController;
 use App\Http\Controllers\Sarpras\RoomController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use Illuminate\Support\Facades\Route;
@@ -90,6 +92,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::controller(ApprovalFlowController::class)->group(function () {
         Route::get('approval-flow', 'edit')->name('approval_flow.edit')->middleware('can:approval-flow.edit');
         Route::put('approval-flow', 'update')->name('approval_flow.update')->middleware('can:approval-flow.edit');
+    });
+
+    // Sarpras: damage reports
+    Route::controller(MaintenanceReportController::class)->group(function () {
+        Route::get('maintenance-reports', 'index')->name('maintenance-reports.index')->middleware('can:maintenance-report.view');
+        Route::get('maintenance-reports/create', 'create')->name('maintenance-reports.create')->middleware('can:maintenance-report.create');
+        Route::post('maintenance-reports', 'store')->name('maintenance-reports.store')->middleware('can:maintenance-report.create');
+        Route::get('maintenance-reports/{maintenanceReport}', 'show')->name('maintenance-reports.show')->middleware('can:maintenance-report.view');
+        Route::patch('maintenance-reports/{maintenanceReport}/assign', 'assign')->name('maintenance-reports.assign')->middleware('can:maintenance-report.assign');
+        Route::patch('maintenance-reports/{maintenanceReport}/start', 'start')->name('maintenance-reports.start')->middleware('can:maintenance-report.process');
+        Route::patch('maintenance-reports/{maintenanceReport}/complete', 'complete')->name('maintenance-reports.complete')->middleware('can:maintenance-report.process');
+        Route::patch('maintenance-reports/{maintenanceReport}/cancel', 'cancel')->name('maintenance-reports.cancel')->middleware('can:maintenance-report.cancel');
+    });
+
+    // Sarpras: maintenance schedules
+    Route::controller(MaintenanceScheduleController::class)->group(function () {
+        Route::get('maintenance-schedules', 'index')->name('maintenance-schedules.index')->middleware('can:maintenance-schedule.view');
+        Route::get('maintenance-schedules/create', 'create')->name('maintenance-schedules.create')->middleware('can:maintenance-schedule.create');
+        Route::post('maintenance-schedules', 'store')->name('maintenance-schedules.store')->middleware('can:maintenance-schedule.create');
+        Route::get('maintenance-schedules/{maintenanceSchedule}/edit', 'edit')->name('maintenance-schedules.edit')->middleware('can:maintenance-schedule.edit');
+        Route::put('maintenance-schedules/{maintenanceSchedule}', 'update')->name('maintenance-schedules.update')->middleware('can:maintenance-schedule.edit');
+        Route::delete('maintenance-schedules/{maintenanceSchedule}', 'destroy')->name('maintenance-schedules.destroy')->middleware('can:maintenance-schedule.delete');
+        Route::patch('maintenance-schedules/{maintenanceSchedule}/complete', 'complete')->name('maintenance-schedules.complete')->middleware('can:maintenance-schedule.execute');
     });
 });
 
