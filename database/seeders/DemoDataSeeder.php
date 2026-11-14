@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Teams\CreateTeam;
 use App\Enums\MaintenanceFrequency;
 use App\Enums\MaintenanceStatus;
 use App\Enums\MaintenanceUrgency;
@@ -96,6 +97,10 @@ class DemoDataSeeder extends Seeder
             );
 
             $users[$local]->assignRole($local);
+
+            if (! $users[$local]->personalTeam()) {
+                app(CreateTeam::class)->handle($users[$local], $users[$local]->name."'s Team", isPersonal: true);
+            }
         }
 
         $speaker = Asset::where('inventory_code', 'INV-00006')->first();
