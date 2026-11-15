@@ -39,7 +39,7 @@ class RoleAndPermissionSeeder extends Seeder
             'maintenance-report.process', 'maintenance-report.cancel',
             'maintenance-schedule.view', 'maintenance-schedule.create', 'maintenance-schedule.edit',
             'maintenance-schedule.delete', 'maintenance-schedule.execute',
-            'audit-log.view',
+            'audit-log.view', 'report.view',
         ];
 
         foreach ($permissions as $permission) {
@@ -64,7 +64,7 @@ class RoleAndPermissionSeeder extends Seeder
             'maintenance-report.process', 'maintenance-report.cancel',
             'maintenance-schedule.view', 'maintenance-schedule.create', 'maintenance-schedule.edit',
             'maintenance-schedule.delete', 'maintenance-schedule.execute',
-            'audit-log.view',
+            'audit-log.view', 'report.view',
         ]);
 
         $auditorRole = Role::firstOrCreate(['name' => 'auditor']);
@@ -77,6 +77,7 @@ class RoleAndPermissionSeeder extends Seeder
             'category.view', 'location.view', 'asset.view', 'room.view',
             'loan.view', 'loan.approve',
             'maintenance-report.view', 'maintenance-schedule.view',
+            'report.view',
         ]);
 
         $staffRole = Role::firstOrCreate(['name' => 'pegawai']);

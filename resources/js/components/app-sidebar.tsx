@@ -35,6 +35,10 @@ import { index as loanIndex } from '@/actions/App/Http/Controllers/Sarpras/LoanR
 import { index as locationIndex } from '@/actions/App/Http/Controllers/Sarpras/LocationController';
 import { index as maintenanceReportIndex } from '@/actions/App/Http/Controllers/Sarpras/MaintenanceReportController';
 import { index as maintenanceScheduleIndex } from '@/actions/App/Http/Controllers/Sarpras/MaintenanceScheduleController';
+import {
+    loans as reportLoansIndex,
+    maintenance as reportMaintenanceIndex,
+} from '@/actions/App/Http/Controllers/Sarpras/ReportController';
 import { index as roomIndex } from '@/actions/App/Http/Controllers/Sarpras/RoomController';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useCurrentUrl } from '@/hooks/use-current-url';
@@ -72,6 +76,7 @@ export function AppSidebar({ collapsed, onCollapse, isMobile }: AppSidebarProps)
     const canViewMaintenanceSchedules = (user?.permissions ?? []).includes('maintenance-schedule.view');
     const canEditApprovalFlow = (user?.permissions ?? []).includes('approval-flow.edit');
     const canViewAuditLogs = (user?.permissions ?? []).includes('audit-log.view');
+    const canViewReports = (user?.permissions ?? []).includes('report.view');
 
     const getActiveKey = () => {
         if (isCurrentUrl(dashboardUrl)) {
@@ -114,6 +119,14 @@ return 'approval-flow';
 return 'audit-logs';
 }
 
+        if (canViewReports && isCurrentUrl(reportLoansIndex().url)) {
+            return 'report-loans';
+        }
+
+        if (canViewReports && isCurrentUrl(reportMaintenanceIndex().url)) {
+            return 'report-maintenance';
+        }
+
         if (isAdmin) {
             if (isCurrentUrl(userIndex().url)) {
 return 'users';
@@ -139,7 +152,7 @@ return 'permissions';
         },
     ];
 
-    const sarprasItems: MenuProps['items'] = canViewAssets || canViewCategories || canViewLocations || canViewLoans || canViewRooms || canViewMaintenanceReports || canViewMaintenanceSchedules || canEditApprovalFlow || canViewAuditLogs
+    const sarprasItems: MenuProps['items'] = canViewAssets || canViewCategories || canViewLocations || canViewLoans || canViewRooms || canViewMaintenanceReports || canViewMaintenanceSchedules || canEditApprovalFlow || canViewAuditLogs || canViewReports
         ? [
               {
                   key: 'sarpras-group',
@@ -180,6 +193,16 @@ return 'permissions';
                           key: 'maintenance-schedules',
                           icon: <CalendarCheck size={16} />,
                           label: <Link href={maintenanceScheduleIndex().url} prefetch>Jadwal Pemeliharaan</Link>,
+                      },
+                      canViewReports && {
+                          key: 'report-loans',
+                          icon: <ClipboardList size={16} />,
+                          label: <Link href={reportLoansIndex().url} prefetch>Riwayat Peminjaman</Link>,
+                      },
+                      canViewReports && {
+                          key: 'report-maintenance',
+                          icon: <Wrench size={16} />,
+                          label: <Link href={reportMaintenanceIndex().url} prefetch>Rekap Kerusakan</Link>,
                       },
                       canEditApprovalFlow && {
                           key: 'approval-flow',

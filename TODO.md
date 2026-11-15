@@ -1,7 +1,7 @@
 # TODO — SI-Sarpras
 
 >Status implementasi terhadap [docs/Rancangan_Sistem_Informasi_Sarpras.md](docs/Rancangan_Sistem_Informasi_Sarpras.md) (v0.1, Bagian 14: 5 tahap).
->Pembaruan terakhir: 2026-11-14 — setelah selesainya Tahap 3b (perawatan, pengingat, notifikasi).
+>Pembaruan terakhir: 2026-11-15 — setelah selesainya Tahap 3c (laporan peminjaman & kerusakan).
 
 ## Progress singkat
 
@@ -24,10 +24,11 @@
 - [x] **Test** modul perawatan + scheduler.
 - [x] pint, `wayfinder:generate --with-form`, `npm run build`, migrasi + seed DB dev, full test suite.
 
-## Tahap 3c — Laporan Modul (jika diminta)
+## Tahap 3c — Laporan Modul ✅ (selesai 2026-11-15)
 
-- [ ] Riwayat peminjaman & keterlambatan (§12) — ekspor/print.
-- [ ] Rekap laporan kerusakan & biaya perbaikan.
+- [x] Riwayat peminjaman & keterlambatan (§12) — filter periode/status, hari terlambat, ekspor CSV, cetak.
+- [x] Rekap laporan kerusakan & biaya perbaikan — total biaya, rekap per kategori, ekspor CSV, cetak.
+- [x] Permission `report.view` (admin, pimpinan, auditor) + test.
 
 ## Tahap 4 — Tata Kelola Aset
 

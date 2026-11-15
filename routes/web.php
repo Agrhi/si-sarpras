@@ -13,6 +13,7 @@ use App\Http\Controllers\Sarpras\LoanRequestController;
 use App\Http\Controllers\Sarpras\LocationController;
 use App\Http\Controllers\Sarpras\MaintenanceReportController;
 use App\Http\Controllers\Sarpras\MaintenanceScheduleController;
+use App\Http\Controllers\Sarpras\ReportController;
 use App\Http\Controllers\Sarpras\RoomController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use Illuminate\Support\Facades\Route;
@@ -116,6 +117,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('maintenance-schedules/{maintenanceSchedule}', 'update')->name('maintenance-schedules.update')->middleware('can:maintenance-schedule.edit');
         Route::delete('maintenance-schedules/{maintenanceSchedule}', 'destroy')->name('maintenance-schedules.destroy')->middleware('can:maintenance-schedule.delete');
         Route::patch('maintenance-schedules/{maintenanceSchedule}/complete', 'complete')->name('maintenance-schedules.complete')->middleware('can:maintenance-schedule.execute');
+    });
+
+    // Sarpras: reports
+    Route::controller(ReportController::class)->group(function () {
+        Route::get('reports/loans', 'loans')->name('reports.loans')->middleware('can:report.view');
+        Route::get('reports/maintenance', 'maintenance')->name('reports.maintenance')->middleware('can:report.view');
     });
 
     // Sarpras: read-only audit trail
