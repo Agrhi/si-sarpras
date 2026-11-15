@@ -35,7 +35,64 @@ type RecentUser = {
     created_at: string;
 };
 
+type Bucket = {
+    label: string;
+    count: number;
+};
+
+type SarprasSummary = {
+    assets?: {
+        total: number;
+        byStatus: Bucket[];
+        byCondition: Bucket[];
+        byCategory: Bucket[];
+        byLocation: Bucket[];
+    };
+    loans?: {
+        active: number;
+        dueSoon: number;
+        overdue: number;
+        items: {
+            id: number;
+            borrower: string;
+            due_at: string;
+            overdue_days: number;
+        }[];
+    };
+    maintenance?: {
+        open: number;
+        items: {
+            id: number;
+            asset: string;
+            urgency: { value: string; label: string };
+            status: string;
+            created_at: string;
+        }[];
+    };
+    schedules?: {
+        due: number;
+        items: {
+            id: number;
+            asset: string;
+            title: string;
+            next_due_at: string;
+            state: string;
+        }[];
+    };
+    procurements?: {
+        pending: number;
+        approved: number;
+        received: number;
+    };
+    disposals?: {
+        pending: number;
+        approved: number;
+        completed: number;
+    };
+};
+
 type Props = {
+    sarpras: SarprasSummary | null;
     globalStats: GlobalStats | null;
     personal: {
         teams: number;
@@ -89,7 +146,39 @@ function StatGrid({ cards }: { cards: StatCard[] }) {
     );
 }
 
+function BucketList({ title, rows }: { title: string; rows: Bucket[] }) {
+    return (
+        <div>
+            <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
+                {title}
+            </p>
+            <ul className="m-0 mt-2 list-none space-y-1.5 p-0 text-sm">
+                {rows.map((row) => (
+                    <li
+                        key={row.label}
+                        className="flex items-center justify-between gap-2"
+                    >
+                        <span className="truncate text-muted-foreground">
+                            {row.label}
+                        </span>
+                        <span className="font-medium text-foreground">
+                            {row.count}
+                        </span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+const urgencyColors: Record<string, string> = {
+    rendah: 'green',
+    sedang: 'orange',
+    tinggi: 'red',
+};
+
 export default function Dashboard({
+    sarpras,
     globalStats,
     personal,
     recentUsers,
@@ -190,6 +279,245 @@ export default function Dashboard({
             />
 
             <StatGrid cards={cards} />
+
+            {sarpras && (
+                <div className="space-y-6">
+                    <h2 className="text-lg font-semibold tracking-tight text-foreground">
+                        Ringkasan Sarpras
+                    </h2>
+
+                    {sarpras.assets && (
+                        <Panel
+                            title="Aset"
+                            description={`${sarpras.assets.total} aset tercatat`}
+                        >
+                            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+                                <BucketList
+                                    title="Per Status"
+                                    rows={sarpras.assets.byStatus}
+                                />
+                                <BucketList
+                                    title="Per Kondisi"
+                                    rows={sarpras.assets.byCondition}
+                                />
+                                <BucketList
+                                    title="Per Kategori"
+                                    rows={sarpras.assets.byCategory}
+                                />
+                                <BucketList
+                                    title="Per Lokasi"
+                                    rows={sarpras.assets.byLocation}
+                                />
+                            </div>
+                        </Panel>
+                    )}
+
+                    {(sarpras.loans ||
+                        sarpras.maintenance ||
+                        sarpras.schedules) && (
+                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                            {sarpras.loans && (
+                                <Panel
+                                    title="Peminjaman Aktif"
+                                    description={`${sarpras.loans.active} aktif · ${sarpras.loans.dueSoon} mendekati tenggat · ${sarpras.loans.overdue} terlambat`}
+                                    bodyClassName="p-0 sm:p-0"
+                                >
+                                    {sarpras.loans.items.length === 0 ? (
+                                        <p className="p-5 text-sm text-muted-foreground">
+                                            Tidak ada peminjaman aktif.
+                                        </p>
+                                    ) : (
+                                        <ul className="m-0 list-none divide-y divide-border p-0">
+                                            {sarpras.loans.items.map((loan) => (
+                                                <li
+                                                    key={loan.id}
+                                                    className="flex items-center justify-between gap-3 px-5 py-3 text-sm"
+                                                >
+                                                    <div className="min-w-0">
+                                                        <p className="truncate font-medium text-foreground">
+                                                            {loan.borrower}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Jatuh tempo{' '}
+                                                            {loan.due_at}
+                                                        </p>
+                                                    </div>
+                                                    {loan.overdue_days > 0 && (
+                                                        <Tag color="red">
+                                                            {loan.overdue_days}{' '}
+                                                            hari
+                                                        </Tag>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </Panel>
+                            )}
+
+                            {sarpras.maintenance && (
+                                <Panel
+                                    title="Kerusakan Belum Selesai"
+                                    description={`${sarpras.maintenance.open} laporan terbuka`}
+                                    bodyClassName="p-0 sm:p-0"
+                                >
+                                    {sarpras.maintenance.items.length === 0 ? (
+                                        <p className="p-5 text-sm text-muted-foreground">
+                                            Tidak ada laporan terbuka.
+                                        </p>
+                                    ) : (
+                                        <ul className="m-0 list-none divide-y divide-border p-0">
+                                            {sarpras.maintenance.items.map(
+                                                (report) => (
+                                                    <li
+                                                        key={report.id}
+                                                        className="flex items-center justify-between gap-3 px-5 py-3 text-sm"
+                                                    >
+                                                        <div className="min-w-0">
+                                                            <p className="truncate font-medium text-foreground">
+                                                                {report.asset}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {
+                                                                    report.status
+                                                                }{' '}
+                                                                ·{' '}
+                                                                {
+                                                                    report.created_at
+                                                                }
+                                                            </p>
+                                                        </div>
+                                                        <Tag
+                                                            color={
+                                                                urgencyColors[
+                                                                    report
+                                                                        .urgency
+                                                                        .value
+                                                                ] ?? 'default'
+                                                            }
+                                                        >
+                                                            {
+                                                                report.urgency
+                                                                    .label
+                                                            }
+                                                        </Tag>
+                                                    </li>
+                                                ),
+                                            )}
+                                        </ul>
+                                    )}
+                                </Panel>
+                            )}
+
+                            {sarpras.schedules && (
+                                <Panel
+                                    title="Jadwal Jatuh Tempo"
+                                    description={`${sarpras.schedules.due} jadwal perlu ditindaklanjuti`}
+                                    bodyClassName="p-0 sm:p-0"
+                                >
+                                    {sarpras.schedules.items.length === 0 ? (
+                                        <p className="p-5 text-sm text-muted-foreground">
+                                            Tidak ada jadwal jatuh tempo.
+                                        </p>
+                                    ) : (
+                                        <ul className="m-0 list-none divide-y divide-border p-0">
+                                            {sarpras.schedules.items.map(
+                                                (schedule) => (
+                                                    <li
+                                                        key={schedule.id}
+                                                        className="flex items-center justify-between gap-3 px-5 py-3 text-sm"
+                                                    >
+                                                        <div className="min-w-0">
+                                                            <p className="truncate font-medium text-foreground">
+                                                                {
+                                                                    schedule.asset
+                                                                }
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {schedule.title}{' '}
+                                                                ·{' '}
+                                                                {
+                                                                    schedule.next_due_at
+                                                                }
+                                                            </p>
+                                                        </div>
+                                                        <Tag
+                                                            color={
+                                                                schedule.state ===
+                                                                'terlambat'
+                                                                    ? 'red'
+                                                                    : 'orange'
+                                                            }
+                                                        >
+                                                            {schedule.state ===
+                                                            'terlambat'
+                                                                ? 'Terlambat'
+                                                                : 'Jatuh tempo'}
+                                                        </Tag>
+                                                    </li>
+                                                ),
+                                            )}
+                                        </ul>
+                                    )}
+                                </Panel>
+                            )}
+                        </div>
+                    )}
+
+                    {(sarpras.procurements || sarpras.disposals) && (
+                        <Panel
+                            title="Pengadaan & Penghapusan"
+                            description="Usulan yang sedang berjalan."
+                        >
+                            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                {sarpras.procurements && (
+                                    <BucketList
+                                        title="Pengadaan"
+                                        rows={[
+                                            {
+                                                label: 'Menunggu',
+                                                count: sarpras.procurements
+                                                    .pending,
+                                            },
+                                            {
+                                                label: 'Disetujui',
+                                                count: sarpras.procurements
+                                                    .approved,
+                                            },
+                                            {
+                                                label: 'Diterima',
+                                                count: sarpras.procurements
+                                                    .received,
+                                            },
+                                        ]}
+                                    />
+                                )}
+                                {sarpras.disposals && (
+                                    <BucketList
+                                        title="Penghapusan"
+                                        rows={[
+                                            {
+                                                label: 'Menunggu',
+                                                count: sarpras.disposals.pending,
+                                            },
+                                            {
+                                                label: 'Disetujui',
+                                                count: sarpras.disposals
+                                                    .approved,
+                                            },
+                                            {
+                                                label: 'Selesai',
+                                                count: sarpras.disposals
+                                                    .completed,
+                                            },
+                                        ]}
+                                    />
+                                )}
+                            </div>
+                        </Panel>
+                    )}
+                </div>
+            )}
 
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
                 <div className="space-y-6 xl:col-span-2">
