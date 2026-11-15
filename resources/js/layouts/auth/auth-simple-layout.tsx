@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Zap } from 'lucide-react';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -51,18 +51,10 @@ export default function AuthSimpleLayout({ children, title, description }: AuthL
                             href={home()}
                             className="flex flex-col items-center gap-3 no-underline"
                         >
-                            <div
-                                className="flex h-14 w-14 items-center justify-center rounded-2xl text-white"
-                                style={{
-                                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                                    boxShadow: '0 8px 32px rgba(99, 102, 241, 0.5)',
-                                }}
-                            >
-                                <Zap size={26} />
-                            </div>
+                            <AppLogoIcon className="size-14" />
                             <div className="text-center">
                                 <div className="font-bold text-white text-lg leading-tight">
-                                    Laravel RBAC
+                                    SI-Sarpras
                                 </div>
                             </div>
                         </Link>

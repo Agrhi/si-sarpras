@@ -22,7 +22,6 @@ import {
     Users,
     Waypoints,
     Wrench,
-    Zap,
 } from 'lucide-react';
 import { index as permissionIndex } from '@/actions/App/Http/Controllers/Admin/PermissionController';
 import { index as roleIndex } from '@/actions/App/Http/Controllers/Admin/RoleController';
@@ -40,6 +39,7 @@ import {
     maintenance as reportMaintenanceIndex,
 } from '@/actions/App/Http/Controllers/Sarpras/ReportController';
 import { index as roomIndex } from '@/actions/App/Http/Controllers/Sarpras/RoomController';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
@@ -317,17 +317,7 @@ return 'permissions';
                         prefetch
                         className="flex items-center gap-2.5 no-underline min-w-0"
                     >
-                        <div
-                            className="flex-shrink-0 flex items-center justify-center rounded-xl text-white"
-                            style={{
-                                width: 34,
-                                height: 34,
-                                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                                boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
-                            }}
-                        >
-                            <Zap size={18} />
-                        </div>
+                        <AppLogoIcon className="size-[34px] shrink-0" />
                         {!collapsed && (
                             <div className="min-w-0">
                                 <div
