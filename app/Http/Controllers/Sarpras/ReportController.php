@@ -2,18 +2,24 @@
 
 namespace App\Http\Controllers\Sarpras;
 
+use App\Enums\AssetCondition;
+use App\Enums\AssetStatus;
 use App\Enums\DisposalStatus;
 use App\Enums\LoanStatus;
 use App\Enums\MaintenanceStatus;
 use App\Enums\ProcurementStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Asset;
+use App\Models\Category;
 use App\Models\Disposal;
 use App\Models\LoanRequest;
+use App\Models\Location;
 use App\Models\MaintenanceReport;
 use App\Models\Procurement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -219,6 +225,80 @@ class ReportController extends Controller
                 'disposal_total' => $disposals->count(),
                 'disposal_completed' => $disposals->where('status.value', DisposalStatus::Completed->value)->count(),
             ],
+        ]);
+    }
+
+    /**
+     * Asset inventory report: condition recap, filtered listing, and records
+     * with incomplete data (no inventory code or no photo).
+     */
+    public function assets(Request $request): Response|StreamedResponse
+    {
+        $filters = $request->validate([
+            'category_id' => ['nullable', 'integer'],
+            'location_id' => ['nullable', 'integer'],
+            'status' => ['nullable', Rule::enum(AssetStatus::class)],
+            'condition' => ['nullable', Rule::enum(AssetCondition::class)],
+        ]);
+
+        $categoryId = isset($filters['category_id']) ? (int) $filters['category_id'] : null;
+        $locationId = isset($filters['location_id']) ? (int) $filters['location_id'] : null;
+
+        $rows = Asset::query()
+            ->with(['category:id,name', 'location:id,name'])
+            ->withCount('images')
+            ->when($categoryId, fn ($query, $category) => $query->where('category_id', $category))
+            ->when($locationId, fn ($query, $location) => $query->where('location_id', $location))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+            ->when($filters['condition'] ?? null, fn ($query, $condition) => $query->where('condition', $condition))
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Asset $asset) => [
+                'id' => $asset->id,
+                'inventory_code' => $asset->inventory_code,
+                'name' => $asset->name,
+                'category' => $asset->category?->name ?? 'Tanpa kategori',
+                'location' => $asset->location?->name ?? 'Tanpa lokasi',
+                'condition' => ['value' => $asset->condition->value, 'label' => $asset->condition->label()],
+                'status' => ['value' => $asset->status->value, 'label' => $asset->status->label()],
+                'image_count' => $asset->images_count,
+            ]);
+
+        if ($request->string('export')->toString() === 'csv') {
+            return $this->csv('laporan-aset.csv', [
+                'Kode Inventaris', 'Nama', 'Kategori', 'Lokasi', 'Kondisi', 'Status', 'Jumlah Foto',
+            ], $rows->map(fn (array $row) => [
+                $row['inventory_code'] ?? '-', $row['name'], $row['category'], $row['location'],
+                $row['condition']['label'], $row['status']['label'], $row['image_count'],
+            ]));
+        }
+
+        return Inertia::render('sarpras/reports/assets', [
+            'rows' => $rows,
+            'categories' => Category::query()->orderBy('name')->get(['id', 'name']),
+            'locations' => Location::query()->orderBy('name')->get(['id', 'name']),
+            'statuses' => AssetStatus::options(),
+            'conditions' => AssetCondition::options(),
+            'filters' => [
+                'category_id' => $categoryId ?? '',
+                'location_id' => $locationId ?? '',
+                'status' => $filters['status'] ?? '',
+                'condition' => $filters['condition'] ?? '',
+            ],
+            'summary' => [
+                'total' => $rows->count(),
+                'by_condition' => collect(AssetCondition::cases())
+                    ->map(fn (AssetCondition $condition) => [
+                        'value' => $condition->value,
+                        'label' => $condition->label(),
+                        'count' => $rows->where('condition.value', $condition->value)->count(),
+                    ])
+                    ->all(),
+                'without_code' => $rows->filter(fn (array $row) => blank($row['inventory_code']))->count(),
+                'without_photo' => $rows->where('image_count', 0)->count(),
+            ],
+            'missing_code' => $rows->filter(fn (array $row) => blank($row['inventory_code']))->values(),
+            'missing_photo' => $rows->where('image_count', 0)->values(),
         ]);
     }
 

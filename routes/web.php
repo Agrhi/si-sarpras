@@ -145,6 +145,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('reports/loans', 'loans')->name('reports.loans')->middleware('can:report.view');
         Route::get('reports/maintenance', 'maintenance')->name('reports.maintenance')->middleware('can:report.view');
         Route::get('reports/asset-governance', 'governance')->name('reports.governance')->middleware('can:report.view');
+        Route::get('reports/assets', 'assets')->name('reports.assets')->middleware('can:report.view');
     });
 
     // Sarpras: read-only audit trail

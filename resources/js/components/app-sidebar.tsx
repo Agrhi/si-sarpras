@@ -14,6 +14,7 @@ import {
     ClipboardList,
     DoorOpen,
     FileBarChart,
+    FileSpreadsheet,
     LayoutGrid,
     MapPin,
     ScrollText,
@@ -40,6 +41,7 @@ import { index as maintenanceReportIndex } from '@/actions/App/Http/Controllers/
 import { index as maintenanceScheduleIndex } from '@/actions/App/Http/Controllers/Sarpras/MaintenanceScheduleController';
 import { index as procurementIndex } from '@/actions/App/Http/Controllers/Sarpras/ProcurementController';
 import {
+    assets as reportAssetsIndex,
     governance as reportGovernanceIndex,
     loans as reportLoansIndex,
     maintenance as reportMaintenanceIndex,
@@ -147,6 +149,10 @@ return 'audit-logs';
             return 'report-governance';
         }
 
+        if (canViewReports && isCurrentUrl(reportAssetsIndex().url)) {
+            return 'report-assets';
+        }
+
         if (isAdmin) {
             if (isCurrentUrl(userIndex().url)) {
 return 'users';
@@ -238,6 +244,11 @@ return 'permissions';
                           key: 'report-governance',
                           icon: <FileBarChart size={16} />,
                           label: <Link href={reportGovernanceIndex().url} prefetch>Pengadaan & Penghapusan</Link>,
+                      },
+                      canViewReports && {
+                          key: 'report-assets',
+                          icon: <FileSpreadsheet size={16} />,
+                          label: <Link href={reportAssetsIndex().url} prefetch>Laporan Aset</Link>,
                       },
                       canEditApprovalFlow && {
                           key: 'approval-flow',

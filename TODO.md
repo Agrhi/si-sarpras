@@ -1,7 +1,7 @@
 # TODO — SI-Sarpras
 
 >Status implementasi terhadap [docs/Rancangan_Sistem_Informasi_Sarpras.md](docs/Rancangan_Sistem_Informasi_Sarpras.md) (v0.1, Bagian 14: 5 tahap).
->Pembaruan terakhir: 2026-11-15 — Tahap 5 dashboard sarpras selesai.
+>Pembaruan terakhir: 2026-11-16 — laporan aset & audit per pengguna/rentang selesai.
 
 ## Progress singkat
 
@@ -9,7 +9,7 @@
 - Tahap 2 Inventaris aset ✅ — master kategori/lokasi, CRUD aset, kode inventaris, QR label, foto, histori, scan.
 - Tahap 3 Operasional ✅ — peminjaman, kerusakan, jadwal pemeliharaan, pengingat.
 - Tahap 4 Tata kelola ✅ — audit log + role auditor; pengadaan; penghapusan; laporan pengadaan/penghapusan.
-- Tahap 5 Penyempurnaan 🚧 berjalan — dashboard sarpras selesai.
+- Tahap 5 Penyempurnaan 🚧 berjalan — dashboard & laporan aset selesai, tinggal scan kamera.
 - **±9 dari 12 modul berfungsi** (Bagian 2.1 dokumen).
 
 ## Tahap 3b — Perawatan & Pengingat ✅ (selesai 2026-11-14)
@@ -43,8 +43,8 @@
 
 - [x] **Dashboard sarpras** (§6.1, selesai 2026-11-15): ringkasan aset per kategori/lokasi/status/kondisi; peminjaman aktif & mendekati tenggat; kerusakan belum selesai; jadwal jatuh tempo; ringkasan pengadaan & penghapusan (hanya tampil sesuai permission).
 - [ ] **Scan via kamera** (§6.3): integrasi pemindai kamera HP (BarcodeDetector API / lib) → buka detail aset.
-- [ ] Laporan lengkap §12 (daftar aset per kategori/lokasi, rekap kondisi, aset tanpa kode/foto, audit per pengguna/rentang).
-- [ ] Laporan "aset belum memiliki kode/foto lengkap" (laporan dcd proses data).
+- [x] Laporan lengkap §12 (selesai 2026-11-16): daftar aset per kategori/lokasi + filter, rekap kondisi, audit per pengguna/rentang tanggal.
+- [x] Laporan "aset belum memiliki kode/foto lengkap" (selesai 2026-11-16, bagian dari laporan aset + ekspor CSV).
 
 ## Belum diputuskan (Bagian 15 dokumen — perlu konfirmasi pemilik proses)
 
@@ -57,6 +57,6 @@
 
 - wayfinder: `php artisan wayfinder:generate --with-form` (tanpa --with-form merusak TS).
 - pint: `vendor/bin/pint --dirty --format agent` setelah ubah PHP.
-- test: `php artisan test --compact` (246 test saat ini, semua lulus).
+- test: `php artisan test --compact` (249 test saat ini, semua lulus).
 - Dev DB: `docker compose exec laravel.test php artisan migrate --force` + `db:seed --force` (seeder idempoten, DemoDataSeeder skip produksi).
 - tsc/build: 6 error TS pre-existing di file admin lama — tidak disentuh.

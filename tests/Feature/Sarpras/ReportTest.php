@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\AssetCondition;
+use App\Enums\AssetStatus;
 use App\Enums\DisposalStatus;
 use App\Enums\LoanStatus;
 use App\Enums\ProcurementStatus;
@@ -22,6 +24,7 @@ test('users without the report permission cannot view reports', function () {
 
     $this->get(route('reports.loans'))->assertForbidden();
     $this->get(route('reports.maintenance'))->assertForbidden();
+    $this->get(route('reports.assets'))->assertForbidden();
 });
 
 test('loan report filters by period and counts overdue days', function () {
@@ -223,4 +226,63 @@ test('governance report can be exported as csv per module', function () {
     $disposalCsv->assertOk();
     expect($disposalCsv->streamedContent())->toContain('Aset')
         ->toContain('Rusak berat');
+});
+
+test('asset report filters by category and counts incomplete records', function () {
+    $user = sarprasUser(['report.view']);
+    $category = Category::factory()->create(['name' => 'Elektronik']);
+    $otherCategory = Category::factory()->create(['name' => 'Furniture']);
+
+    $complete = Asset::factory()->create([
+        'category_id' => $category->id,
+        'name' => 'Laptop',
+        'condition' => AssetCondition::Baik->value,
+        'status' => AssetStatus::Aktif->value,
+    ]);
+    $complete->images()->create(['path' => 'assets/1/laptop.jpg']);
+
+    Asset::factory()->create([
+        'inventory_code' => null,
+        'category_id' => $category->id,
+        'name' => 'Proyektor',
+        'condition' => AssetCondition::Rusak->value,
+    ]);
+    Asset::factory()->create([
+        'category_id' => $otherCategory->id,
+        'name' => 'Meja',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('reports.assets', ['category_id' => $category->id]))
+        ->assertOk()
+        ->assertInertia(fn ($assert) => $assert
+            ->component('sarpras/reports/assets')
+            ->has('rows', 2)
+            ->has('missing_code', 1)
+            ->has('missing_photo', 1)
+            ->where('summary.total', 2)
+            ->where('summary.without_code', 1)
+            ->where('summary.without_photo', 1)
+            ->where('summary.by_condition.0.count', 1)
+            ->where('summary.by_condition.2.count', 1)
+            ->where('missing_code.0.name', 'Proyektor'));
+});
+
+test('asset report can be exported as csv', function () {
+    $user = sarprasUser(['report.view']);
+
+    Asset::factory()->create([
+        'inventory_code' => 'INV-90001',
+        'name' => 'Laptop Laboratorium',
+    ]);
+
+    $response = $this->actingAs($user)->get(route('reports.assets', [
+        'export' => 'csv',
+    ]));
+
+    $response->assertOk();
+
+    expect($response->headers->get('content-type'))->toContain('text/csv')
+        ->and($response->streamedContent())->toContain('Kode Inventaris')
+        ->toContain('Laptop Laboratorium');
 });
