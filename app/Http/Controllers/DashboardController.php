@@ -68,11 +68,11 @@ class DashboardController extends Controller
 
         if ($user->can('asset.view')) {
             $statusCounts = Asset::query()
-                ->selectRaw('status, count(*) as aggregate')
+                ->select('status')->selectRaw('count(*) as aggregate')
                 ->groupBy('status')
                 ->pluck('aggregate', 'status');
             $conditionCounts = Asset::query()
-                ->selectRaw('condition, count(*) as aggregate')
+                ->select('condition')->selectRaw('count(*) as aggregate')
                 ->groupBy('condition')
                 ->pluck('aggregate', 'condition');
 
@@ -93,7 +93,7 @@ class DashboardController extends Controller
                     ])
                     ->all(),
                 'byCategory' => Asset::query()
-                    ->selectRaw('category_id, count(*) as aggregate')
+                    ->select('category_id')->selectRaw('count(*) as aggregate')
                     ->groupBy('category_id')
                     ->orderByDesc('aggregate')
                     ->limit(5)
@@ -105,7 +105,7 @@ class DashboardController extends Controller
                     ])
                     ->all(),
                 'byLocation' => Asset::query()
-                    ->selectRaw('location_id, count(*) as aggregate')
+                    ->select('location_id')->selectRaw('count(*) as aggregate')
                     ->groupBy('location_id')
                     ->orderByDesc('aggregate')
                     ->limit(5)
@@ -187,7 +187,7 @@ class DashboardController extends Controller
 
         if ($user->can('procurement.view')) {
             $counts = Procurement::query()
-                ->selectRaw('status, count(*) as aggregate')
+                ->select('status')->selectRaw('count(*) as aggregate')
                 ->groupBy('status')
                 ->pluck('aggregate', 'status');
 
@@ -200,7 +200,7 @@ class DashboardController extends Controller
 
         if ($user->can('disposal.view')) {
             $counts = Disposal::query()
-                ->selectRaw('status, count(*) as aggregate')
+                ->select('status')->selectRaw('count(*) as aggregate')
                 ->groupBy('status')
                 ->pluck('aggregate', 'status');
 
