@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\LoanDecision;
+use App\Enums\ApprovalDecision;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +14,7 @@ class LoanApproval extends Model
     {
         return [
             'step_index' => 'integer',
-            'decision' => LoanDecision::class,
+            'decision' => ApprovalDecision::class,
         ];
     }
 

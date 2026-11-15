@@ -9,10 +9,12 @@ use App\Http\Controllers\Sarpras\ApprovalFlowController;
 use App\Http\Controllers\Sarpras\AssetController;
 use App\Http\Controllers\Sarpras\AuditLogController;
 use App\Http\Controllers\Sarpras\CategoryController;
+use App\Http\Controllers\Sarpras\DisposalController;
 use App\Http\Controllers\Sarpras\LoanRequestController;
 use App\Http\Controllers\Sarpras\LocationController;
 use App\Http\Controllers\Sarpras\MaintenanceReportController;
 use App\Http\Controllers\Sarpras\MaintenanceScheduleController;
+use App\Http\Controllers\Sarpras\ProcurementController;
 use App\Http\Controllers\Sarpras\ReportController;
 use App\Http\Controllers\Sarpras\RoomController;
 use App\Http\Controllers\Teams\TeamInvitationController;
@@ -87,6 +89,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('loans/{loanRequest}/cancel', 'cancel')->name('loans.cancel');
     });
 
+    // Sarpras: procurement requests
+    Route::controller(ProcurementController::class)->group(function () {
+        Route::get('procurements', 'index')->name('procurements.index')->middleware('can:procurement.view');
+        Route::get('procurements/create', 'create')->name('procurements.create')->middleware('can:procurement.create');
+        Route::post('procurements', 'store')->name('procurements.store')->middleware('can:procurement.create');
+        Route::get('procurements/{procurement}', 'show')->name('procurements.show')->middleware('can:procurement.view');
+        Route::post('procurements/{procurement}/approve', 'approve')->name('procurements.approve')->middleware('can:procurement.approve');
+        Route::post('procurements/{procurement}/reject', 'reject')->name('procurements.reject')->middleware('can:procurement.approve');
+        Route::post('procurements/{procurement}/receive', 'receive')->name('procurements.receive')->middleware('can:procurement.receive');
+    });
+
+    // Sarpras: asset disposals
+    Route::controller(DisposalController::class)->group(function () {
+        Route::get('disposals', 'index')->name('disposals.index')->middleware('can:disposal.view');
+        Route::get('disposals/create', 'create')->name('disposals.create')->middleware('can:disposal.create');
+        Route::post('disposals', 'store')->name('disposals.store')->middleware('can:disposal.create');
+        Route::get('disposals/{disposal}', 'show')->name('disposals.show')->middleware('can:disposal.view');
+        Route::post('disposals/{disposal}/approve', 'approve')->name('disposals.approve')->middleware('can:disposal.approve');
+        Route::post('disposals/{disposal}/reject', 'reject')->name('disposals.reject')->middleware('can:disposal.approve');
+        Route::post('disposals/{disposal}/complete', 'complete')->name('disposals.complete')->middleware('can:disposal.complete');
+    });
+
     // Sarpras: loan approval flow configuration
     Route::controller(ApprovalFlowController::class)->group(function () {
         Route::get('approval-flow', 'edit')->name('approval_flow.edit')->middleware('can:approval-flow.edit');
@@ -120,6 +144,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::controller(ReportController::class)->group(function () {
         Route::get('reports/loans', 'loans')->name('reports.loans')->middleware('can:report.view');
         Route::get('reports/maintenance', 'maintenance')->name('reports.maintenance')->middleware('can:report.view');
+        Route::get('reports/asset-governance', 'governance')->name('reports.governance')->middleware('can:report.view');
     });
 
     // Sarpras: read-only audit trail

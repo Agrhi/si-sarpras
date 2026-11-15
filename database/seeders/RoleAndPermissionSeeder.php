@@ -39,6 +39,8 @@ class RoleAndPermissionSeeder extends Seeder
             'maintenance-report.process', 'maintenance-report.cancel',
             'maintenance-schedule.view', 'maintenance-schedule.create', 'maintenance-schedule.edit',
             'maintenance-schedule.delete', 'maintenance-schedule.execute',
+            'procurement.view', 'procurement.create', 'procurement.approve', 'procurement.receive',
+            'disposal.view', 'disposal.create', 'disposal.approve', 'disposal.complete',
             'audit-log.view', 'report.view',
         ];
 
@@ -64,6 +66,8 @@ class RoleAndPermissionSeeder extends Seeder
             'maintenance-report.process', 'maintenance-report.cancel',
             'maintenance-schedule.view', 'maintenance-schedule.create', 'maintenance-schedule.edit',
             'maintenance-schedule.delete', 'maintenance-schedule.execute',
+            'procurement.view', 'procurement.create', 'procurement.approve', 'procurement.receive',
+            'disposal.view', 'disposal.create', 'disposal.approve', 'disposal.complete',
             'audit-log.view', 'report.view',
         ]);
 
@@ -77,6 +81,8 @@ class RoleAndPermissionSeeder extends Seeder
             'category.view', 'location.view', 'asset.view', 'room.view',
             'loan.view', 'loan.approve',
             'maintenance-report.view', 'maintenance-schedule.view',
+            'procurement.view', 'procurement.approve',
+            'disposal.view', 'disposal.approve',
             'report.view',
         ]);
 
@@ -85,6 +91,7 @@ class RoleAndPermissionSeeder extends Seeder
             'category.view', 'location.view', 'asset.view', 'room.view',
             'loan.view', 'loan.create',
             'maintenance-report.view', 'maintenance-report.create', 'maintenance-report.cancel',
+            'procurement.view', 'procurement.create', 'disposal.view',
         ]);
 
         $technicianRole = Role::firstOrCreate(['name' => 'petugas-teknis']);
@@ -99,6 +106,32 @@ class RoleAndPermissionSeeder extends Seeder
             ['module' => 'loan'],
             [
                 'name' => 'Alur Persetujuan Peminjaman',
+                'steps' => [
+                    ['role' => 'admin', 'title' => 'Verifikasi Admin Sarpras'],
+                    ['role' => 'pimpinan', 'title' => 'Persetujuan Pimpinan'],
+                ],
+                'is_active' => true,
+            ],
+        );
+
+        // Default multi-step approval flow for procurement requests
+        ApprovalFlow::firstOrCreate(
+            ['module' => 'procurement'],
+            [
+                'name' => 'Alur Persetujuan Pengadaan',
+                'steps' => [
+                    ['role' => 'admin', 'title' => 'Verifikasi Admin Sarpras'],
+                    ['role' => 'pimpinan', 'title' => 'Persetujuan Pimpinan'],
+                ],
+                'is_active' => true,
+            ],
+        );
+
+        // Default multi-step approval flow for asset disposals
+        ApprovalFlow::firstOrCreate(
+            ['module' => 'disposal'],
+            [
+                'name' => 'Alur Persetujuan Penghapusan',
                 'steps' => [
                     ['role' => 'admin', 'title' => 'Verifikasi Admin Sarpras'],
                     ['role' => 'pimpinan', 'title' => 'Persetujuan Pimpinan'],

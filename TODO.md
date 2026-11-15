@@ -1,16 +1,16 @@
 # TODO — SI-Sarpras
 
 >Status implementasi terhadap [docs/Rancangan_Sistem_Informasi_Sarpras.md](docs/Rancangan_Sistem_Informasi_Sarpras.md) (v0.1, Bagian 14: 5 tahap).
->Pembaruan terakhir: 2026-11-15 — setelah selesainya Tahap 3c (laporan peminjaman & kerusakan).
+>Pembaruan terakhir: 2026-11-15 — Tahap 4 (tata kelola aset) selesai.
 
 ## Progress singkat
 
 - Tahap 1 Fondasi ✅ — users/roles/permissions, teams, notifikasi, layout.
 - Tahap 2 Inventaris aset ✅ — master kategori/lokasi, CRUD aset, kode inventaris, QR label, foto, histori, scan.
 - Tahap 3 Operasional ✅ — peminjaman, kerusakan, jadwal pemeliharaan, pengingat.
-- Tahap 4 Tata kelola 🔨 — audit log + role auditor selesai; pengadaan/penghapusan belum.
+- Tahap 4 Tata kelola ✅ — audit log + role auditor; pengadaan; penghapusan; laporan pengadaan/penghapusan.
 - Tahap 5 Penyempurnaan ❌ belum mulai.
-- **±6 dari 12 modul berfungsi** (Bagian 2.1 dokumen).
+- **±9 dari 12 modul berfungsi** (Bagian 2.1 dokumen).
 
 ## Tahap 3b — Perawatan & Pengingat ✅ (selesai 2026-11-14)
 
@@ -26,18 +26,18 @@
 
 ## Tahap 3c — Laporan Modul ✅ (selesai 2026-11-15)
 
-- [x] Riwayat peminjaman & keterlambatan (§12) — filter periode/status, hari terlambat, ekspor CSV, cetak.
-- [x] Rekap laporan kerusakan & biaya perbaikan — total biaya, rekap per kategori, ekspor CSV, cetak.
+- [x] Riwayat peminjaman & keterlambatan (§12) — filter periode/status, hari terlambat, ekspor CSV.
+- [x] Rekap laporan kerusakan & biaya perbaikan — total biaya, rekap per kategori, ekspor CSV.
 - [x] Permission `report.view` (admin, pimpinan, auditor) + test.
 
 ## Tahap 4 — Tata Kelola Aset
 
-- [ ] **Pengadaan** (`procurements` + `procurement_items`, §6.7): usulan multi-item + alasan + estimasi; verifikasi/persetujuan (alur berjenjang `approval_flows` module `procurement`); penerimaan → barang menjadi aset inventaris.
-- [ ] **Penghapusan** (`disposals`, §6.8): usulan dengan alasan + bukti; persetujuan; metode + tanggal realisasi + dokumen; aset berstatus `dihapus` tanpa menghilangkan histori.
+- [x] **Pengadaan** (`procurements` + `procurement_items`, §6.7): usulan multi-item + alasan + estimasi; verifikasi/persetujuan (alur berjenjang `approval_flows` module `procurement`); penerimaan → barang menjadi aset inventaris.
+- [x] **Penghapusan** (`disposals`, §6.8): usulan dengan alasan + bukti; persetujuan; metode + tanggal realisasi + dokumen; aset berstatus `dihapus` tanpa menghilangkan histori.
 - [x] **Audit log global** (`audit_logs`, §6.10): aktor, waktu, aksi, jenis objek, ID objek, ringkasan; read-only bagi pengguna biasa.
 - [x] **Role `auditor`** (§3): baca semua data + audit log.
-- [ ] **Laporan pengadaan/penghapusan** (§12).
-- [ ] Test, pint, wayfinder, build, migrasi, seed.
+- [x] **Laporan pengadaan/penghapusan** (§12).
+- [x] Test, pint, wayfinder, build, migrasi, seed.
 
 ## Tahap 5 — Penyempurnaan
 
@@ -57,6 +57,6 @@
 
 - wayfinder: `php artisan wayfinder:generate --with-form` (tanpa --with-form merusak TS).
 - pint: `vendor/bin/pint --dirty --format agent` setelah ubah PHP.
-- test: `php artisan test --compact` (149 test saat ini, semua lulus).
+- test: `php artisan test --compact` (243 test saat ini, semua lulus).
 - Dev DB: `docker compose exec laravel.test php artisan migrate --force` + `db:seed --force` (seeder idempoten, DemoDataSeeder skip produksi).
 - tsc/build: 6 error TS pre-existing di file admin lama — tidak disentuh.

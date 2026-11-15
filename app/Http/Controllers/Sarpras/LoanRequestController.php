@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Sarpras;
 
+use App\Enums\ApprovalDecision;
 use App\Enums\AssetCondition;
 use App\Enums\AssetStatus;
-use App\Enums\LoanDecision;
 use App\Enums\LoanStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ApprovalFlow;
@@ -276,7 +276,7 @@ class LoanRequestController extends Controller
      */
     public function approve(Request $request, LoanRequest $loanRequest): RedirectResponse
     {
-        return $this->decide($request, $loanRequest, LoanDecision::Approved);
+        return $this->decide($request, $loanRequest, ApprovalDecision::Approved);
     }
 
     /**
@@ -284,7 +284,7 @@ class LoanRequestController extends Controller
      */
     public function reject(Request $request, LoanRequest $loanRequest): RedirectResponse
     {
-        return $this->decide($request, $loanRequest, LoanDecision::Rejected);
+        return $this->decide($request, $loanRequest, ApprovalDecision::Rejected);
     }
 
     /**
@@ -391,7 +391,7 @@ class LoanRequestController extends Controller
     /**
      * Record an approval decision and advance the flow.
      */
-    private function decide(Request $request, LoanRequest $loanRequest, LoanDecision $decision): RedirectResponse
+    private function decide(Request $request, LoanRequest $loanRequest, ApprovalDecision $decision): RedirectResponse
     {
         abort_unless($loanRequest->status === LoanStatus::Pending, 409, 'Pengajuan sudah diproses.');
 
@@ -412,7 +412,7 @@ class LoanRequestController extends Controller
                 'note' => $validated['note'] ?? null,
             ]);
 
-            if ($decision === LoanDecision::Approved) {
+            if ($decision === ApprovalDecision::Approved) {
                 $loanRequest->fill(['current_step' => $loanRequest->current_step + 1]);
 
                 if (! $loanRequest->hasMoreSteps()) {
@@ -425,13 +425,13 @@ class LoanRequestController extends Controller
             }
         });
 
-        $message = $decision === LoanDecision::Approved
+        $message = $decision === ApprovalDecision::Approved
             ? 'Persetujuan langkah ini tercatat.'
             : 'Pengajuan ditolak.';
 
         $loanRequest->loadMissing('user');
 
-        if ($decision === LoanDecision::Rejected) {
+        if ($decision === ApprovalDecision::Rejected) {
             $this->notify($loanRequest->user, new LoanRejected($loanRequest), $user);
         } elseif ($loanRequest->status === LoanStatus::Approved) {
             $this->notify($loanRequest->user, new LoanApproved($loanRequest), $user);

@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Sarpras;
 
+use App\Enums\DisposalStatus;
 use App\Enums\LoanStatus;
 use App\Enums\MaintenanceStatus;
+use App\Enums\ProcurementStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Disposal;
 use App\Models\LoanRequest;
 use App\Models\MaintenanceReport;
+use App\Models\Procurement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -138,6 +142,83 @@ class ReportController extends Controller
                 'total' => $group->count(),
                 'cost' => $group->sum('cost'),
             ])->values(),
+        ]);
+    }
+
+    /**
+     * Procurement and disposal recap.
+     */
+    public function governance(Request $request): Response|StreamedResponse
+    {
+        [$from, $to] = $this->period($request);
+
+        $procurements = Procurement::query()
+            ->with(['user:id,name', 'items:id,procurement_id,quantity,unit_price'])
+            ->whereBetween('created_at', [$from, $to->copy()->endOfDay()])
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn (Procurement $procurement) => [
+                'id' => $procurement->id,
+                'title' => $procurement->title,
+                'proposer' => $procurement->user?->name,
+                'item_count' => $procurement->items->count(),
+                'estimated_total' => $procurement->items->sum(fn ($item) => $item->estimatedTotal()),
+                'status' => ['value' => $procurement->status->value, 'label' => $procurement->status->label()],
+                'created_at' => $procurement->created_at->format('d/m/Y'),
+                'received_at' => $procurement->received_at?->format('d/m/Y'),
+            ]);
+
+        $disposals = Disposal::query()
+            ->with(['user:id,name', 'asset:id,inventory_code,name'])
+            ->whereBetween('created_at', [$from, $to->copy()->endOfDay()])
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn (Disposal $disposal) => [
+                'id' => $disposal->id,
+                'asset' => $disposal->asset
+                    ? "{$disposal->asset->inventory_code} · {$disposal->asset->name}"
+                    : '—',
+                'proposer' => $disposal->user?->name,
+                'reason' => $disposal->reason,
+                'status' => ['value' => $disposal->status->value, 'label' => $disposal->status->label()],
+                'created_at' => $disposal->created_at->format('d/m/Y'),
+                'method' => $disposal->method?->label(),
+                'realized_at' => $disposal->realized_at?->format('d/m/Y'),
+            ]);
+
+        $export = $request->string('export')->toString();
+
+        if ($export === 'procurement') {
+            return $this->csv('laporan-pengadaan.csv', [
+                'Usulan', 'Pengusul', 'Jumlah Item', 'Estimasi Biaya', 'Status',
+                'Tanggal Usul', 'Tanggal Terima',
+            ], $procurements->map(fn (array $row) => [
+                $row['title'], $row['proposer'] ?? '-', $row['item_count'], $row['estimated_total'],
+                $row['status']['label'], $row['created_at'], $row['received_at'] ?? '-',
+            ]));
+        }
+
+        if ($export === 'disposal') {
+            return $this->csv('laporan-penghapusan.csv', [
+                'Aset', 'Pengusul', 'Alasan', 'Status', 'Tanggal Usul', 'Metode', 'Tanggal Realisasi',
+            ], $disposals->map(fn (array $row) => [
+                $row['asset'], $row['proposer'] ?? '-', $row['reason'], $row['status']['label'],
+                $row['created_at'], $row['method'] ?? '-', $row['realized_at'] ?? '-',
+            ]));
+        }
+
+        return Inertia::render('sarpras/reports/governance', [
+            'procurements' => $procurements,
+            'disposals' => $disposals,
+            'from' => $from->toDateString(),
+            'to' => $to->toDateString(),
+            'summary' => [
+                'procurement_total' => $procurements->count(),
+                'procurement_received' => $procurements->where('status.value', ProcurementStatus::Received->value)->count(),
+                'procurement_cost' => $procurements->sum('estimated_total'),
+                'disposal_total' => $disposals->count(),
+                'disposal_completed' => $disposals->where('status.value', DisposalStatus::Completed->value)->count(),
+            ],
         ]);
     }
 

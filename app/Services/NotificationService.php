@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification as NotificationFacade;
@@ -22,6 +23,22 @@ class NotificationService
     public function sendToMultiple(Collection|array $notifiables, Notification $notification): void
     {
         NotificationFacade::send($notifiables, $notification);
+    }
+
+    /**
+     * Send a notification to every user holding the role and permission.
+     */
+    public function sendToRole(string $role, string $permission, Notification $notification, ?User $actor = null): void
+    {
+        $users = User::query()
+            ->whereHas('roles', fn ($query) => $query->where('name', $role))
+            ->get()
+            ->filter(fn (User $user) => $user->can($permission))
+            ->reject(fn (User $user) => $actor?->is($user));
+
+        if ($users->isNotEmpty()) {
+            $this->sendToMultiple($users, $notification);
+        }
     }
 
     /**

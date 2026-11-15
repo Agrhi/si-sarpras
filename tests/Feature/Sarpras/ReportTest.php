@@ -1,10 +1,14 @@
 <?php
 
+use App\Enums\DisposalStatus;
 use App\Enums\LoanStatus;
+use App\Enums\ProcurementStatus;
 use App\Models\Asset;
 use App\Models\Category;
+use App\Models\Disposal;
 use App\Models\LoanRequest;
 use App\Models\MaintenanceReport;
+use App\Models\Procurement;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 
@@ -147,4 +151,76 @@ test('maintenance report totals repair costs and recaps per category', function 
         ->where('category_recap.0.total', 3)
         ->where('category_recap.0.cost', fn ($cost) => (float) $cost === 150000.0)
     );
+});
+
+test('governance report summarizes procurement and disposal within the period', function () {
+    $user = sarprasUser(['report.view']);
+
+    $received = Procurement::factory()->create([
+        'status' => ProcurementStatus::Received->value,
+        'created_at' => '2026-11-05 09:00',
+    ]);
+    $received->items()->create(['name' => 'Laptop', 'quantity' => 2, 'unit_price' => 5000000]);
+    Procurement::factory()->create([
+        'status' => ProcurementStatus::Approved->value,
+        'created_at' => '2026-11-06 09:00',
+    ]);
+    Procurement::factory()->create(['created_at' => '2026-10-01 09:00']);
+
+    Disposal::factory()->create([
+        'status' => DisposalStatus::Completed->value,
+        'created_at' => '2026-11-07 09:00',
+    ]);
+    Disposal::factory()->create(['created_at' => '2026-11-08 09:00']);
+
+    $response = $this->actingAs($user)->get(route('reports.governance', [
+        'from' => '2026-11-01',
+        'to' => '2026-11-30',
+    ]));
+
+    $response->assertOk()->assertInertia(fn ($assert) => $assert
+        ->component('sarpras/reports/governance')
+        ->has('procurements', 2)
+        ->has('disposals', 2)
+        ->where('summary.procurement_total', 2)
+        ->where('summary.procurement_received', 1)
+        ->where('summary.procurement_cost', fn ($cost) => (float) $cost === 10000000.0)
+        ->where('summary.disposal_total', 2)
+        ->where('summary.disposal_completed', 1)
+    );
+});
+
+test('governance report can be exported as csv per module', function () {
+    $user = sarprasUser(['report.view']);
+
+    $procurement = Procurement::factory()->create([
+        'title' => 'Pengadaan laboratorium',
+        'created_at' => '2026-11-05 09:00',
+    ]);
+    $procurement->items()->create(['name' => 'Laptop', 'quantity' => 1, 'unit_price' => 5000000]);
+    Disposal::factory()->create([
+        'reason' => 'Rusak berat',
+        'created_at' => '2026-11-06 09:00',
+    ]);
+
+    $procurementCsv = $this->actingAs($user)->get(route('reports.governance', [
+        'from' => '2026-11-01',
+        'to' => '2026-11-30',
+        'export' => 'procurement',
+    ]));
+
+    $procurementCsv->assertOk();
+    expect($procurementCsv->headers->get('content-type'))->toContain('text/csv')
+        ->and($procurementCsv->streamedContent())->toContain('Usulan')
+        ->toContain('Pengadaan laboratorium');
+
+    $disposalCsv = $this->actingAs($user)->get(route('reports.governance', [
+        'from' => '2026-11-01',
+        'to' => '2026-11-30',
+        'export' => 'disposal',
+    ]));
+
+    $disposalCsv->assertOk();
+    expect($disposalCsv->streamedContent())->toContain('Aset')
+        ->toContain('Rusak berat');
 });

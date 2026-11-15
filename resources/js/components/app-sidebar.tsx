@@ -13,11 +13,14 @@ import {
     CalendarCheck,
     ClipboardList,
     DoorOpen,
+    FileBarChart,
     LayoutGrid,
     MapPin,
     ScrollText,
     ShieldCheck,
+    ShoppingCart,
     Tags,
+    Trash2,
     UserCheck,
     Users,
     Waypoints,
@@ -30,11 +33,14 @@ import { edit as approvalFlowEdit } from '@/actions/App/Http/Controllers/Sarpras
 import { index as assetIndex } from '@/actions/App/Http/Controllers/Sarpras/AssetController';
 import { index as auditLogIndex } from '@/actions/App/Http/Controllers/Sarpras/AuditLogController';
 import { index as categoryIndex } from '@/actions/App/Http/Controllers/Sarpras/CategoryController';
+import { index as disposalIndex } from '@/actions/App/Http/Controllers/Sarpras/DisposalController';
 import { index as loanIndex } from '@/actions/App/Http/Controllers/Sarpras/LoanRequestController';
 import { index as locationIndex } from '@/actions/App/Http/Controllers/Sarpras/LocationController';
 import { index as maintenanceReportIndex } from '@/actions/App/Http/Controllers/Sarpras/MaintenanceReportController';
 import { index as maintenanceScheduleIndex } from '@/actions/App/Http/Controllers/Sarpras/MaintenanceScheduleController';
+import { index as procurementIndex } from '@/actions/App/Http/Controllers/Sarpras/ProcurementController';
 import {
+    governance as reportGovernanceIndex,
     loans as reportLoansIndex,
     maintenance as reportMaintenanceIndex,
 } from '@/actions/App/Http/Controllers/Sarpras/ReportController';
@@ -74,6 +80,8 @@ export function AppSidebar({ collapsed, onCollapse, isMobile }: AppSidebarProps)
     const canViewRooms = (user?.permissions ?? []).includes('room.view');
     const canViewMaintenanceReports = (user?.permissions ?? []).includes('maintenance-report.view');
     const canViewMaintenanceSchedules = (user?.permissions ?? []).includes('maintenance-schedule.view');
+    const canViewProcurements = (user?.permissions ?? []).includes('procurement.view');
+    const canViewDisposals = (user?.permissions ?? []).includes('disposal.view');
     const canEditApprovalFlow = (user?.permissions ?? []).includes('approval-flow.edit');
     const canViewAuditLogs = (user?.permissions ?? []).includes('audit-log.view');
     const canViewReports = (user?.permissions ?? []).includes('report.view');
@@ -107,6 +115,14 @@ return 'maintenance-reports';
 return 'maintenance-schedules';
 }
 
+        if (isCurrentUrl(procurementIndex().url)) {
+return 'procurements';
+}
+
+        if (isCurrentUrl(disposalIndex().url)) {
+return 'disposals';
+}
+
         if (isCurrentUrl(roomIndex().url)) {
 return 'rooms';
 }
@@ -125,6 +141,10 @@ return 'audit-logs';
 
         if (canViewReports && isCurrentUrl(reportMaintenanceIndex().url)) {
             return 'report-maintenance';
+        }
+
+        if (canViewReports && isCurrentUrl(reportGovernanceIndex().url)) {
+            return 'report-governance';
         }
 
         if (isAdmin) {
@@ -152,7 +172,7 @@ return 'permissions';
         },
     ];
 
-    const sarprasItems: MenuProps['items'] = canViewAssets || canViewCategories || canViewLocations || canViewLoans || canViewRooms || canViewMaintenanceReports || canViewMaintenanceSchedules || canEditApprovalFlow || canViewAuditLogs || canViewReports
+    const sarprasItems: MenuProps['items'] = canViewAssets || canViewCategories || canViewLocations || canViewLoans || canViewRooms || canViewMaintenanceReports || canViewMaintenanceSchedules || canViewProcurements || canViewDisposals || canEditApprovalFlow || canViewAuditLogs || canViewReports
         ? [
               {
                   key: 'sarpras-group',
@@ -194,6 +214,16 @@ return 'permissions';
                           icon: <CalendarCheck size={16} />,
                           label: <Link href={maintenanceScheduleIndex().url} prefetch>Jadwal Pemeliharaan</Link>,
                       },
+                      canViewProcurements && {
+                          key: 'procurements',
+                          icon: <ShoppingCart size={16} />,
+                          label: <Link href={procurementIndex().url} prefetch>Pengadaan</Link>,
+                      },
+                      canViewDisposals && {
+                          key: 'disposals',
+                          icon: <Trash2 size={16} />,
+                          label: <Link href={disposalIndex().url} prefetch>Penghapusan Aset</Link>,
+                      },
                       canViewReports && {
                           key: 'report-loans',
                           icon: <ClipboardList size={16} />,
@@ -203,6 +233,11 @@ return 'permissions';
                           key: 'report-maintenance',
                           icon: <Wrench size={16} />,
                           label: <Link href={reportMaintenanceIndex().url} prefetch>Rekap Kerusakan</Link>,
+                      },
+                      canViewReports && {
+                          key: 'report-governance',
+                          icon: <FileBarChart size={16} />,
+                          label: <Link href={reportGovernanceIndex().url} prefetch>Pengadaan & Penghapusan</Link>,
                       },
                       canEditApprovalFlow && {
                           key: 'approval-flow',
