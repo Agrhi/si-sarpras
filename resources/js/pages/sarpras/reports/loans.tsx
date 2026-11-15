@@ -1,4 +1,4 @@
-import { DownloadOutlined, PrinterOutlined } from '@ant-design/icons';
+import { DownloadOutlined } from '@ant-design/icons';
 import { Head, router } from '@inertiajs/react';
 import { Button, Checkbox, Input, Select, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -154,48 +154,28 @@ export default function LoanReport({
     ];
 
     return (
-        <div className="mx-auto w-full max-w-7xl space-y-6 print:max-w-none print:space-y-3">
+        <div className="mx-auto w-full max-w-7xl space-y-6">
             <Head title="Riwayat Peminjaman" />
-            <div className="print:hidden">
-                <PageHeader
-                    eyebrow="Sarana Prasarana"
-                    title="Riwayat Peminjaman & Keterlambatan"
-                    description="Rekap peminjaman berdasarkan tanggal pinjam, lengkap dengan hari keterlambatan."
-                    actions={
-                        <>
-                            <Button
-                                icon={<PrinterOutlined />}
-                                size="large"
-                                onClick={() => window.print()}
-                            >
-                                Cetak
-                            </Button>
-                            <Button
-                                type="primary"
-                                icon={<DownloadOutlined />}
-                                size="large"
-                                onClick={() => {
-                                    window.location.href = exportUrl;
-                                }}
-                            >
-                                Ekspor CSV
-                            </Button>
-                        </>
-                    }
-                />
-            </div>
+            <PageHeader
+                eyebrow="Sarana Prasarana"
+                title="Riwayat Peminjaman & Keterlambatan"
+                description="Rekap peminjaman berdasarkan tanggal pinjam, lengkap dengan hari keterlambatan."
+                actions={
+                    <Button
+                        type="primary"
+                        icon={<DownloadOutlined />}
+                        size="large"
+                        onClick={() => {
+                            window.location.href = exportUrl;
+                        }}
+                    >
+                        Ekspor CSV
+                    </Button>
+                }
+            />
 
-            <div className="hidden print:block">
-                <h1 className="text-xl font-bold">
-                    Riwayat Peminjaman & Keterlambatan
-                </h1>
-                <p className="text-sm">
-                    Periode {from} s/d {to}
-                </p>
-            </div>
-
-            <Panel bodyClassName="p-4 sm:p-6 print:border-0 print:p-0 print:shadow-none">
-                <div className="mb-4 flex flex-wrap items-end gap-3 print:hidden">
+            <Panel bodyClassName="p-4 sm:p-6">
+                <div className="mb-4 flex flex-wrap items-end gap-3">
                     <label className="text-sm">
                         <span className="mb-1 block text-muted-foreground">
                             Dari
