@@ -15,7 +15,7 @@ import { index as userIndex } from '@/actions/App/Http/Controllers/Admin/UserCon
 import PageHeader from '@/components/page-header';
 import Panel from '@/components/panel';
 import { useInitials } from '@/hooks/use-initials';
-import { dashboard, readme } from '@/routes';
+import { dashboard } from '@/routes';
 import { edit as profileEdit } from '@/routes/profile';
 import { edit as securityEdit } from '@/routes/security';
 import { index as teamIndex } from '@/routes/teams';
@@ -146,27 +146,37 @@ function StatGrid({ cards }: { cards: StatCard[] }) {
     );
 }
 
-function BucketList({ title, rows }: { title: string; rows: Bucket[] }) {
+function StatTile({ label, value }: { label: string; value: number }) {
+    return (
+        <div className="rounded-xl border border-border bg-muted/30 px-3 py-2.5">
+            <p
+                className="truncate text-xs text-muted-foreground"
+                title={label}
+            >
+                {label}
+            </p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">
+                {value}
+            </p>
+        </div>
+    );
+}
+
+function BucketTiles({ title, rows }: { title: string; rows: Bucket[] }) {
     return (
         <div>
             <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
                 {title}
             </p>
-            <ul className="m-0 mt-2 list-none space-y-1.5 p-0 text-sm">
+            <div className="mt-2 space-y-2">
                 {rows.map((row) => (
-                    <li
+                    <StatTile
                         key={row.label}
-                        className="flex items-center justify-between gap-2"
-                    >
-                        <span className="truncate text-muted-foreground">
-                            {row.label}
-                        </span>
-                        <span className="font-medium text-foreground">
-                            {row.count}
-                        </span>
-                    </li>
+                        label={row.label}
+                        value={row.count}
+                    />
                 ))}
-            </ul>
+            </div>
         </div>
     );
 }
@@ -267,15 +277,6 @@ export default function Dashboard({
                 eyebrow={dateLabel}
                 title={`Welcome back, ${user.name.split(' ')[0]}`}
                 description="Ringkasan akses dan aktivitas terbaru di ruang kerja kamu."
-                actions={
-                    <Link
-                        href={readme()}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                    >
-                        Documentation
-                        <ArrowUpRight size={14} />
-                    </Link>
-                }
             />
 
             <StatGrid cards={cards} />
@@ -292,19 +293,19 @@ export default function Dashboard({
                             description={`${sarpras.assets.total} aset tercatat`}
                         >
                             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-                                <BucketList
+                                <BucketTiles
                                     title="Per Status"
                                     rows={sarpras.assets.byStatus}
                                 />
-                                <BucketList
+                                <BucketTiles
                                     title="Per Kondisi"
                                     rows={sarpras.assets.byCondition}
                                 />
-                                <BucketList
+                                <BucketTiles
                                     title="Per Kategori"
                                     rows={sarpras.assets.byCategory}
                                 />
-                                <BucketList
+                                <BucketTiles
                                     title="Per Lokasi"
                                     rows={sarpras.assets.byLocation}
                                 />
@@ -471,47 +472,58 @@ export default function Dashboard({
                         >
                             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                 {sarpras.procurements && (
-                                    <BucketList
-                                        title="Pengadaan"
-                                        rows={[
-                                            {
-                                                label: 'Menunggu',
-                                                count: sarpras.procurements
-                                                    .pending,
-                                            },
-                                            {
-                                                label: 'Disetujui',
-                                                count: sarpras.procurements
-                                                    .approved,
-                                            },
-                                            {
-                                                label: 'Diterima',
-                                                count: sarpras.procurements
-                                                    .received,
-                                            },
-                                        ]}
-                                    />
+                                    <div>
+                                        <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
+                                            Pengadaan
+                                        </p>
+                                        <div className="mt-2 grid grid-cols-3 gap-2">
+                                            <StatTile
+                                                label="Menunggu"
+                                                value={
+                                                    sarpras.procurements.pending
+                                                }
+                                            />
+                                            <StatTile
+                                                label="Disetujui"
+                                                value={
+                                                    sarpras.procurements.approved
+                                                }
+                                            />
+                                            <StatTile
+                                                label="Diterima"
+                                                value={
+                                                    sarpras.procurements.received
+                                                }
+                                            />
+                                        </div>
+                                    </div>
                                 )}
                                 {sarpras.disposals && (
-                                    <BucketList
-                                        title="Penghapusan"
-                                        rows={[
-                                            {
-                                                label: 'Menunggu',
-                                                count: sarpras.disposals.pending,
-                                            },
-                                            {
-                                                label: 'Disetujui',
-                                                count: sarpras.disposals
-                                                    .approved,
-                                            },
-                                            {
-                                                label: 'Selesai',
-                                                count: sarpras.disposals
-                                                    .completed,
-                                            },
-                                        ]}
-                                    />
+                                    <div>
+                                        <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
+                                            Penghapusan
+                                        </p>
+                                        <div className="mt-2 grid grid-cols-3 gap-2">
+                                            <StatTile
+                                                label="Menunggu"
+                                                value={
+                                                    sarpras.disposals.pending
+                                                }
+                                            />
+                                            <StatTile
+                                                label="Disetujui"
+                                                value={
+                                                    sarpras.disposals.approved
+                                                }
+                                            />
+                                            <StatTile
+                                                label="Selesai"
+                                                value={
+                                                    sarpras.disposals.completed
+                                                }
+                                            />
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </Panel>
