@@ -20,28 +20,27 @@ export default function AuthCardLayout({
     description?: string;
 }>) {
     return (
-        <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-            <div className="flex w-full max-w-md flex-col gap-6">
-                <Link
-                    href={home()}
-                    className="flex items-center gap-2 self-center font-medium"
-                >
-                    <div className="flex h-9 w-9 items-center justify-center">
-                        <AppLogoIcon className="size-9" />
-                    </div>
-                </Link>
-
-                <div className="flex flex-col gap-6">
-                    <Card className="rounded-xl">
-                        <CardHeader className="px-10 pt-8 pb-0 text-center">
-                            <CardTitle className="text-xl">{title}</CardTitle>
+        <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
+            <div className="w-full max-w-md">
+                <Card className="gap-2 rounded-xl">
+                    <CardHeader className="px-10 pt-8 pb-0 text-center">
+                        <Link
+                            href={home()}
+                            className="mx-auto mb-2 flex size-24 items-center justify-center"
+                        >
+                            <AppLogoIcon className="size-24" />
+                        </Link>
+                        <CardTitle className="text-2xl font-bold">
+                            {title}
+                        </CardTitle>
+                        {description && (
                             <CardDescription>{description}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="px-10 py-8">
-                            {children}
-                        </CardContent>
-                    </Card>
-                </div>
+                        )}
+                    </CardHeader>
+                    <CardContent className="px-10 pt-3 pb-8">
+                        {children}
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );

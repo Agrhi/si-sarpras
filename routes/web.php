@@ -17,11 +17,8 @@ use App\Http\Controllers\Sarpras\ReportController;
 use App\Http\Controllers\Sarpras\RoomController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 
-Route::inertia('/', 'welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+Route::redirect('/', '/login')->name('home');
 
 Route::inertia('readme', 'readme')->name('readme');
 
