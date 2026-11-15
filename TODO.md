@@ -1,7 +1,7 @@
 # TODO — SI-Sarpras
 
 >Status implementasi terhadap [docs/Rancangan_Sistem_Informasi_Sarpras.md](docs/Rancangan_Sistem_Informasi_Sarpras.md) (v0.1, Bagian 14: 5 tahap).
->Pembaruan terakhir: 2026-11-16 — laporan aset & audit per pengguna/rentang selesai.
+>Pembaruan terakhir: 2026-11-16 — scan kamera selesai; Tahap 5 tuntas.
 
 ## Progress singkat
 
@@ -9,7 +9,7 @@
 - Tahap 2 Inventaris aset ✅ — master kategori/lokasi, CRUD aset, kode inventaris, QR label, foto, histori, scan.
 - Tahap 3 Operasional ✅ — peminjaman, kerusakan, jadwal pemeliharaan, pengingat.
 - Tahap 4 Tata kelola ✅ — audit log + role auditor; pengadaan; penghapusan; laporan pengadaan/penghapusan.
-- Tahap 5 Penyempurnaan 🚧 berjalan — dashboard & laporan aset selesai, tinggal scan kamera.
+- Tahap 5 Penyempurnaan ✅ — dashboard, laporan aset/audit, scan kamera.
 - **±9 dari 12 modul berfungsi** (Bagian 2.1 dokumen).
 
 ## Tahap 3b — Perawatan & Pengingat ✅ (selesai 2026-11-14)
@@ -42,7 +42,7 @@
 ## Tahap 5 — Penyempurnaan
 
 - [x] **Dashboard sarpras** (§6.1, selesai 2026-11-15): ringkasan aset per kategori/lokasi/status/kondisi; peminjaman aktif & mendekati tenggat; kerusakan belum selesai; jadwal jatuh tempo; ringkasan pengadaan & penghapusan (hanya tampil sesuai permission).
-- [ ] **Scan via kamera** (§6.3): integrasi pemindai kamera HP (BarcodeDetector API / lib) → buka detail aset.
+- [x] **Scan via kamera** (§6.3, selesai 2026-11-16): kamera belakang mendeteksi QR berisi kode inventaris (jsQR) lalu membuka detail aset; input kode manual tetap tersedia.
 - [x] Laporan lengkap §12 (selesai 2026-11-16): daftar aset per kategori/lokasi + filter, rekap kondisi, audit per pengguna/rentang tanggal.
 - [x] Laporan "aset belum memiliki kode/foto lengkap" (selesai 2026-11-16, bagian dari laporan aset + ekspor CSV).
 

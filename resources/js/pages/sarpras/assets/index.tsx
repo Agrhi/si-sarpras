@@ -10,7 +10,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Button, Dropdown, Input, Modal, Select, Tag } from 'antd';
 import type { MenuProps } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { useState } from 'react';
+import jsQR from 'jsqr';
+import { useEffect, useRef, useState } from 'react';
 import {
     create,
     destroy,
@@ -85,6 +86,99 @@ export default function AssetIndex({
 }: Props) {
     const [scanOpen, setScanOpen] = useState(false);
     const [scanCode, setScanCode] = useState('');
+    const [cameraActive, setCameraActive] = useState(false);
+    const [cameraError, setCameraError] = useState<string | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+
+    const supportsCamera =
+        typeof window !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
+
+    useEffect(() => {
+        if (!scanOpen || !supportsCamera) {
+            return;
+        }
+
+        let cancelled = false;
+        let timer: number | undefined;
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+
+        const start = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' },
+                });
+
+                if (cancelled) {
+                    stream.getTracks().forEach((track) => track.stop());
+
+                    return;
+                }
+
+                streamRef.current = stream;
+
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    await videoRef.current.play();
+                }
+
+                setCameraActive(true);
+
+                const tick = () => {
+                    const video = videoRef.current;
+
+                    if (cancelled || !video) {
+                        return;
+                    }
+
+                    if (context && video.videoWidth > 0) {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        const frame = context.getImageData(
+                            0,
+                            0,
+                            canvas.width,
+                            canvas.height,
+                        );
+                        const result = jsQR(frame.data, frame.width, frame.height);
+                        const value = result?.data.trim();
+
+                        if (value) {
+                            setScanOpen(false);
+                            router.get(scan(value).url);
+
+                            return;
+                        }
+                    }
+
+                    timer = window.setTimeout(tick, 250);
+                };
+
+                tick();
+            } catch {
+                setCameraError(
+                    'Kamera tidak dapat diakses. Gunakan input kode manual.',
+                );
+            }
+        };
+
+        void start();
+
+        return () => {
+            cancelled = true;
+
+            if (timer) {
+                window.clearTimeout(timer);
+            }
+
+            streamRef.current?.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+            setCameraActive(false);
+        };
+    }, [scanOpen, supportsCamera]);
 
     const columns: ColumnsType<Asset> = [
         {
@@ -217,6 +311,7 @@ export default function AssetIndex({
                             size="large"
                             onClick={() => {
                                 setScanCode('');
+                                setCameraError(null);
                                 setScanOpen(true);
                             }}
                         >
@@ -246,9 +341,34 @@ export default function AssetIndex({
                 }}
                 onCancel={() => setScanOpen(false)}
             >
-                <p className="mb-3 text-sm text-muted-foreground">
-                    Masukkan atau tempel kode inventaris hasil pindai
-                    QR/barcode.
+                {supportsCamera ? (
+                    <>
+                        <div className="relative mb-2 overflow-hidden rounded-xl border border-border bg-black">
+                            <video
+                                ref={videoRef}
+                                className="h-56 w-full object-cover"
+                                muted
+                                playsInline
+                            />
+                            {!cameraActive && !cameraError && (
+                                <p className="absolute inset-0 flex items-center justify-center text-sm text-white">
+                                    Menyiapkan kamera…
+                                </p>
+                            )}
+                        </div>
+                        <p className="mb-3 text-sm text-muted-foreground">
+                            {cameraError ??
+                                'Arahkan kamera ke QR pada label aset.'}
+                        </p>
+                    </>
+                ) : (
+                    <p className="mb-3 text-sm text-muted-foreground">
+                        Kamera tidak tersedia (butuh HTTPS atau localhost).
+                        Gunakan input kode manual.
+                    </p>
+                )}
+                <p className="mb-2 text-sm text-muted-foreground">
+                    Atau masukkan kode manual:
                 </p>
                 <Input
                     placeholder="Contoh: INV-00042"
