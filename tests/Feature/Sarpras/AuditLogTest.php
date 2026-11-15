@@ -69,3 +69,37 @@ test('rejected input is not recorded', function () {
 
     expect(AuditLog::count())->toBe(0);
 });
+
+test('audit log can be filtered by user and date range', function () {
+    $viewer = sarprasUser(['audit-log.view']);
+    $alice = User::factory()->create(['name' => 'Alice']);
+    $bob = User::factory()->create(['name' => 'Bob']);
+
+    $record = function (User $user, string $summary, string $at): void {
+        $log = AuditLog::create([
+            'user_id' => $user->id,
+            'action' => 'test.action',
+            'summary' => $summary,
+        ]);
+
+        $log->forceFill(['created_at' => $at])->save();
+    };
+
+    $record($alice, 'Aksi Alice', '2026-11-05 09:00:00');
+    $record($bob, 'Aksi Bob', '2026-11-06 09:00:00');
+    $record($alice, 'Aksi Alice Lama', '2026-10-01 09:00:00');
+
+    $this->actingAs($viewer)
+        ->get(route('audit-logs.index', [
+            'user_id' => $alice->id,
+            'from' => '2026-11-01',
+            'to' => '2026-11-30',
+        ]))
+        ->assertOk()
+        ->assertInertia(fn ($assert) => $assert
+            ->has('logs', 1)
+            ->where('logs.0.summary', 'Aksi Alice')
+            ->where('userId', $alice->id)
+            ->where('from', '2026-11-01')
+            ->where('to', '2026-11-30'));
+});
