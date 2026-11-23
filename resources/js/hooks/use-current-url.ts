@@ -63,7 +63,12 @@ export function useCurrentUrl(): UseCurrentUrlReturn {
         urlToCheck: NonNullable<InertiaLinkProps['href']>,
         currentUrl?: string,
     ) => {
-        return isCurrentUrl(urlToCheck, currentUrl, true);
+        const base = toUrl(urlToCheck).replace(/\/$/, '');
+
+        return (
+            isCurrentUrl(urlToCheck, currentUrl) ||
+            isCurrentUrl(`${base}/`, currentUrl, true)
+        );
     };
 
     const whenCurrentUrl: WhenCurrentUrlFn = <TIfTrue, TIfFalse = null>(

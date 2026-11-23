@@ -68,7 +68,7 @@ export function AppSidebar({ collapsed, onCollapse, isMobile }: AppSidebarProps)
     const user = page.props.auth.user as any;
     const currentTeam = page.props.currentTeam as any;
     const teams = (page.props.teams ?? []) as any[];
-    const { isCurrentUrl } = useCurrentUrl();
+    const { isCurrentOrParentUrl } = useCurrentUrl();
     const getInitials = useInitials();
     const dashboardUrl = dashboard();
     const { resolvedAppearance } = useAppearance();
@@ -89,80 +89,80 @@ export function AppSidebar({ collapsed, onCollapse, isMobile }: AppSidebarProps)
     const canViewReports = (user?.permissions ?? []).includes('report.view');
 
     const getActiveKey = () => {
-        if (isCurrentUrl(dashboardUrl)) {
+        if (isCurrentOrParentUrl(dashboardUrl)) {
 return 'dashboard';
 }
 
-        if (isCurrentUrl(assetIndex().url)) {
+        if (isCurrentOrParentUrl(assetIndex().url)) {
 return 'assets';
 }
 
-        if (isCurrentUrl(categoryIndex().url)) {
+        if (isCurrentOrParentUrl(categoryIndex().url)) {
 return 'categories';
 }
 
-        if (isCurrentUrl(locationIndex().url)) {
+        if (isCurrentOrParentUrl(locationIndex().url)) {
 return 'locations';
 }
 
-        if (isCurrentUrl(loanIndex().url)) {
+        if (isCurrentOrParentUrl(loanIndex().url)) {
 return 'loans';
 }
 
-        if (isCurrentUrl(maintenanceReportIndex().url)) {
+        if (isCurrentOrParentUrl(maintenanceReportIndex().url)) {
 return 'maintenance-reports';
 }
 
-        if (isCurrentUrl(maintenanceScheduleIndex().url)) {
+        if (isCurrentOrParentUrl(maintenanceScheduleIndex().url)) {
 return 'maintenance-schedules';
 }
 
-        if (isCurrentUrl(procurementIndex().url)) {
+        if (isCurrentOrParentUrl(procurementIndex().url)) {
 return 'procurements';
 }
 
-        if (isCurrentUrl(disposalIndex().url)) {
+        if (isCurrentOrParentUrl(disposalIndex().url)) {
 return 'disposals';
 }
 
-        if (isCurrentUrl(roomIndex().url)) {
+        if (isCurrentOrParentUrl(roomIndex().url)) {
 return 'rooms';
 }
 
-        if (isCurrentUrl(approvalFlowEdit().url)) {
+        if (isCurrentOrParentUrl(approvalFlowEdit().url)) {
 return 'approval-flow';
 }
 
-        if (canViewAuditLogs && isCurrentUrl(auditLogIndex().url)) {
+        if (canViewAuditLogs && isCurrentOrParentUrl(auditLogIndex().url)) {
 return 'audit-logs';
 }
 
-        if (canViewReports && isCurrentUrl(reportLoansIndex().url)) {
+        if (canViewReports && isCurrentOrParentUrl(reportLoansIndex().url)) {
             return 'report-loans';
         }
 
-        if (canViewReports && isCurrentUrl(reportMaintenanceIndex().url)) {
+        if (canViewReports && isCurrentOrParentUrl(reportMaintenanceIndex().url)) {
             return 'report-maintenance';
         }
 
-        if (canViewReports && isCurrentUrl(reportGovernanceIndex().url)) {
+        if (canViewReports && isCurrentOrParentUrl(reportGovernanceIndex().url)) {
             return 'report-governance';
         }
 
-        if (canViewReports && isCurrentUrl(reportAssetsIndex().url)) {
+        if (canViewReports && isCurrentOrParentUrl(reportAssetsIndex().url)) {
             return 'report-assets';
         }
 
         if (isAdmin) {
-            if (isCurrentUrl(userIndex().url)) {
+            if (isCurrentOrParentUrl(userIndex().url)) {
 return 'users';
 }
 
-            if (isCurrentUrl(roleIndex().url)) {
+            if (isCurrentOrParentUrl(roleIndex().url)) {
 return 'roles';
 }
 
-            if (isCurrentUrl(permissionIndex().url)) {
+            if (isCurrentOrParentUrl(permissionIndex().url)) {
 return 'permissions';
 }
         }
