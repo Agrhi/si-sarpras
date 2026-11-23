@@ -317,6 +317,11 @@ class ProcurementController extends Controller
             );
         }
 
+        Inertia::flash('toast', [
+            'type' => $decision === ApprovalDecision::Rejected ? 'error' : 'success',
+            'message' => $message,
+        ]);
+
         return redirect()->route('procurements.show', $procurement)->with('success', $message);
     }
 

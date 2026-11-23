@@ -95,13 +95,16 @@ test('procurement advances through multi-step approval flow', function () {
     $procurement = Procurement::factory()->create(['approval_steps' => $steps]);
 
     $this->actingAs(roleUser('admin', ['procurement.approve']))
-        ->post(route('procurements.approve', $procurement));
+        ->post(route('procurements.approve', $procurement))
+        ->assertInertiaFlash('toast.type', 'success')
+        ->assertInertiaFlash('toast.message', 'Persetujuan langkah ini tercatat.');
 
     expect($procurement->fresh()->status)->toBe(ProcurementStatus::Pending)
         ->and($procurement->fresh()->current_step)->toBe(1);
 
     $this->actingAs(roleUser('pimpinan', ['procurement.approve']))
-        ->post(route('procurements.approve', $procurement), ['note' => 'Silakan']);
+        ->post(route('procurements.approve', $procurement), ['note' => 'Silakan'])
+        ->assertInertiaFlash('toast.type', 'success');
 
     expect($procurement->fresh()->status)->toBe(ProcurementStatus::Approved)
         ->and($procurement->fresh()->approvals()->count())->toBe(2);
@@ -112,7 +115,9 @@ test('procurement rejection stops the flow', function () {
     $procurement = Procurement::factory()->create(['approval_steps' => $steps]);
 
     $this->actingAs(roleUser('admin', ['procurement.approve']))
-        ->post(route('procurements.reject', $procurement), ['note' => 'Anggaran habis']);
+        ->post(route('procurements.reject', $procurement), ['note' => 'Anggaran habis'])
+        ->assertInertiaFlash('toast.type', 'error')
+        ->assertInertiaFlash('toast.message', 'Pengajuan ditolak.');
 
     $procurement = $procurement->fresh();
     expect($procurement->status)->toBe(ProcurementStatus::Rejected)
