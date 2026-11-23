@@ -72,6 +72,25 @@ const STATUS_COLORS: Record<string, string> = {
     Dihapus: 'default',
 };
 
+/**
+ * Label QR stores a full scan URL, while manual input stores the plain code.
+ */
+function inventoryCodeFromQr(value: string): string {
+    const raw = value.trim();
+
+    if (!/^https?:\/\//i.test(raw)) {
+        return raw;
+    }
+
+    try {
+        const segments = new URL(raw).pathname.split('/').filter(Boolean);
+
+        return decodeURIComponent(segments.at(-1) ?? '');
+    } catch {
+        return raw;
+    }
+}
+
 export default function AssetIndex({
     assets,
     total,
@@ -144,7 +163,7 @@ export default function AssetIndex({
                             canvas.height,
                         );
                         const result = jsQR(frame.data, frame.width, frame.height);
-                        const value = result?.data.trim();
+                        const value = inventoryCodeFromQr(result?.data ?? '');
 
                         if (value) {
                             setScanOpen(false);
